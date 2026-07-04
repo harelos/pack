@@ -426,6 +426,10 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .daytab{flex:1;height:38px;border:0;background:0;border-radius:9px;font-size:14px;font-weight:650;color:var(--muted);font-family:inherit}
 .daytab.active{background:var(--card);color:var(--ink);box-shadow:var(--sh)}
 .daypanel{margin-top:14px}
+.hero-stat{display:flex;align-items:baseline;gap:9px;margin:8px 2px 2px;animation:rise .5s var(--ease) both}
+.hero-stat .hn{font-family:var(--serif);font-size:40px;font-weight:500;letter-spacing:-.03em;color:var(--forest);line-height:1;font-variant-numeric:tabular-nums}
+.hero-stat .hl{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+#s-today .greet h2{font-size:27px;line-height:1.14;letter-spacing:-.02em}
 .foodadd{display:flex;gap:8px;margin-bottom:12px}
 #foodInput{flex:1;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;min-width:0}
 #foodInput:focus{outline:0;border-color:var(--forest)}
@@ -540,9 +544,10 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
     <div class="screens">
       <!-- TODAY -->
       <section class="screen active" id="s-today">
-        <div class="greet"><div class="date" id="dateK">Wed 1 Jul</div><h2 id="greetH">Good evening</h2></div>
+        <div class="greet"><div class="date" id="dateK">Today</div><h2 id="greetH">Good evening</h2></div>
+        <div class="hero-stat" id="heroStat" style="display:none"><span class="hn" id="heroNum">0</span><span class="hl" id="heroLabel"></span></div>
 
-        <button class="btn bigstart" id="startTraining"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M4 9l2-2M20 15l-2 2M7 4l3 3M17 20l-3-3M3.5 12.5l1-1M19.5 11.5l1 1"/></svg>Start training</button>
+        <button class="btn bigstart" id="startTraining"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M4 9l2-2M20 15l-2 2M7 4l3 3M17 20l-3-3M3.5 12.5l1-1M19.5 11.5l1 1"/></svg><span id="startLabel">Start training</span></button>
 
         <div class="daytabs">
           <button class="daytab active" data-day="training">Training</button>
@@ -756,7 +761,7 @@ $("#dateK").textContent=new Date().toLocaleDateString("en-GB",{weekday:"short",d
 /* ---------- onboarding ---------- */
 const ONB="pack.onboarded";let obGoal=null;
 function showOnb(){$("#onboarding").classList.add("show");$("#app").classList.remove("show");setObStep(1);resetOb2();}
-function showApp(){$("#onboarding").classList.remove("show");$("#app").classList.add("show");refreshState();}
+function showApp(){$("#onboarding").classList.remove("show");$("#app").classList.add("show");_heroAnimDone=false;refreshState();}
 function setObStep(n){$$(".ob-step").forEach(s=>s.classList.toggle("on",+s.dataset.step===n));$("#obBar").style.width=(n*33.34)+"%";}
 $$(".goal").forEach(g=>g.onclick=()=>{$$(".goal").forEach(x=>x.classList.remove("sel"));g.classList.add("sel");obGoal=g.dataset.goal;$("#ob1next").disabled=false;});
 $("#ob1next").onclick=()=>setObStep(2);
@@ -788,7 +793,7 @@ function finishOnb(){try{localStorage.setItem(ONB,"1")}catch(e){}
 function burstConfetti(){const box=$("#confetti");box.innerHTML="";for(let i=0;i<26;i++){const p=el("<i></i>");const a=Math.random()*6.28,d=50+Math.random()*120;p.style.background=DOTC[i%6];p.style.transform=`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px) rotate(${Math.random()*360}deg)`;p.style.animationDelay=(Math.random()*.15)+"s";box.appendChild(p);}}
 
 /* ---------- tabs ---------- */
-$$(".nav-btn").forEach(b=>b.onclick=()=>{$$(".nav-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$(".screen").forEach(s=>s.classList.remove("active"));$("#s-"+b.dataset.tab).classList.add("active");$(".screens").scrollTo({top:0,behavior:"smooth"});});
+$$(".nav-btn").forEach(b=>b.onclick=()=>{$$(".nav-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$(".screen").forEach(s=>s.classList.remove("active"));$("#s-"+b.dataset.tab).classList.add("active");if(b.dataset.tab==="today"){_heroAnimDone=false;renderHero();}$(".screens").scrollTo({top:0,behavior:"smooth"});});
 
 /* ---------- log store + real Today/Journal/stats ---------- */
 const LOG_KEY="pack.logs";
@@ -850,6 +855,7 @@ function openLog(ts){const card=$('#todayTraining .sesscard[data-ts="'+ts+'"]');
   const log=loadLogs().find(l=>l.ts===ts);if(!log)return;
   const det=el('<div class="logdetail"></div>');det.onclick=e=>e.stopPropagation();card.after(det);renderDetail(det,log);}
 function renderToday(){
+  renderHero();
   const today=dayKey(Date.now()),logs=loadLogs().filter(l=>dayKey(l.ts)===today).reverse();
   const tc=$("#todayTraining");
   if(tc){const sess=logs.filter(l=>l.data.entries.some(e=>e.workout_session));
@@ -923,7 +929,41 @@ function startFromPlan(exs){
   openBuilder(blocks);
 }
 
-$("#startTraining").onclick=()=>openBuilder();
+/* ---- Today hero: the "it knows me" open moment ---- */
+let heroPlan=null,_heroAnimDone=false;
+function fmtN(n){return n.toLocaleString();}
+function countUp(el,target,dur){const t0=performance.now();(function step(t){const p=Math.min(1,(t-t0)/dur);el.textContent=fmtN(Math.round(target*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(step);})(performance.now());}
+function animOrSet(el,target){if(_heroAnimDone)el.textContent=fmtN(target);else countUp(el,target,850);}
+function capw(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function monthVolume(){const now=new Date(),m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();let v=0;loadLogs().forEach(l=>{if(l.ts<m0)return;l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>g.sets.forEach(s=>{if(s.load>0&&s.reps>0)v+=s.load*s.reps;})));});return Math.round(v);}
+function heroHeadline(){
+  const logs=loadLogs();if(!logs.length)return {line:"Let's log your first session.",cta:null};
+  const lastTs=Math.max(...logs.map(l=>l.ts)),gap=Math.floor((Date.now()-lastTs)/864e5);
+  const exs=Object.values(coachData()).map(analyzeEx).filter(Boolean),plan=exs.length?exs:null;
+  if(gap>=6)return {line:"Welcome back. Let's ease in.",cta:plan};
+  const pr=exs.find(e=>{const last=e.points[e.points.length-1],prev=Math.max(0,...e.points.slice(0,-1).map(x=>x.e1rm));return last.e1rm>prev&&(Date.now()-last.ts)<3*864e5;});
+  if(pr){const l=pr.points[pr.points.length-1];return {line:"New best: "+capw(pr.name)+" "+l.e1rm+"kg.",cta:plan};}
+  const heavy=exs.slice().sort((a,b)=>b.last.e1rm-a.last.e1rm)[0];
+  if(heavy){const e1=heavy.last.e1rm,next=Math.ceil((e1+0.001)/10)*10,g=next-e1;if(g>0&&g<=7)return {line:g+"kg from a "+next+"kg "+heavy.name.toLowerCase()+".",cta:plan};}
+  const stall=exs.find(e=>e.trend==="stall");
+  if(stall)return {line:capw(stall.name)+" plateaued. I eased it back for this week.",cta:plan};
+  const up=exs.filter(e=>e.trend==="up").length,streak=computeStreak();
+  if(up>=1)return {line:up+(up===1?" lift climbing":" lifts climbing")+(streak>1?". "+streak+"-day streak.":"."),cta:plan};
+  if(streak>1)return {line:streak+"-day streak. Keep going.",cta:plan};
+  return {line:"Ready to train.",cta:plan};
+}
+function renderHero(){
+  const dk=$("#dateK");if(dk)dk.textContent=new Date().toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+" · Session "+(loadLogs().filter(l=>l.data.entries.some(e=>e.workout_session)).length+1);
+  const h=heroHeadline(),gl=$("#greetH");if(gl)gl.textContent=h.line;
+  const hs=$("#heroStat");
+  if(hs){const vol=monthVolume();
+    if(vol>0){hs.style.display="";$("#heroLabel").textContent="kg lifted this month";animOrSet($("#heroNum"),vol);}
+    else{const n=loadLogs().length;if(n>0){hs.style.display="";$("#heroLabel").textContent=n===1?"log so far":"logs so far";animOrSet($("#heroNum"),n);}else hs.style.display="none";}}
+  heroPlan=h.cta;const sl=$("#startLabel");if(sl)sl.textContent=h.cta?"Start today's plan":"Start training";
+  _heroAnimDone=true;
+}
+
+$("#startTraining").onclick=()=>{if(heroPlan&&heroPlan.length)startFromPlan(heroPlan);else openBuilder();};
 $$(".daytab").forEach(t=>t.onclick=()=>{$$(".daytab").forEach(x=>x.classList.remove("active"));t.classList.add("active");const d=t.dataset.day;$("#dayTraining").style.display=d==="training"?"":"none";$("#dayFood").style.display=d==="food"?"":"none";});
 $("#foodAdd").onclick=()=>logFood($("#foodInput").value.trim());
 $("#foodInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();logFood($("#foodInput").value.trim());}});
