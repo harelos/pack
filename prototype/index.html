@@ -375,7 +375,7 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .timer .t{font-family:var(--serif);font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:60px;text-align:right}
 .timer button{border:0;border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:700;color:#FBF7EF}
 .timer .start{background:var(--forest)} .timer .stop{background:var(--clay)}
-.bld-body{flex:1;overflow-y:auto;padding:6px 18px 96px;scrollbar-width:none}
+.bld-body{flex:1;overflow-y:auto;padding:6px 18px 150px;scrollbar-width:none}
 .bld-body::-webkit-scrollbar{display:none}
 .bld-name{width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;margin-bottom:14px}
 .bld-name:focus{outline:0;border-color:var(--forest)}
@@ -399,6 +399,14 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .bld-foot .add .ic{width:16px;height:16px;stroke:var(--forest)}
 .bld-foot .save{flex:1;height:50px;border-radius:12px;background:var(--forest);border:0;color:#FBF7EF;font-weight:700;font-size:15px}
 .bld-foot .save:disabled{opacity:.45}
+.restbar{position:absolute;left:0;right:0;bottom:72px;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--paper);border-top:1px solid var(--line)}
+.restbar .rt{font-family:var(--serif);font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.restbar.active .rt{color:var(--clay)}
+.rest-go{height:36px;padding:0 15px;border:0;border-radius:10px;background:var(--forest);color:#FBF7EF;font-weight:700;font-size:13px}
+.restbar.active .rest-go{background:var(--clay)}
+.rest-target{display:flex;gap:5px;margin-left:auto}
+.rest-target button{width:44px;height:34px;border:1px solid var(--line2);background:var(--card);border-radius:8px;font-size:11.5px;font-weight:650;color:var(--ink2)}
+.rest-target button.on{background:var(--forest-tint);color:var(--forest2);border-color:#C6DDCC}
 .picker{position:absolute;inset:0;z-index:40;background:rgba(35,31,26,.42);display:none;align-items:flex-end}
 .picker.show{display:flex}
 .picker-sheet{width:100%;max-height:86%;background:var(--paper);border-radius:24px 24px 0 0;display:flex;flex-direction:column;padding:14px 0 0}
@@ -614,6 +622,13 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
       <div class="bld-body">
         <input class="bld-name" id="bldName" placeholder="Session name (e.g. Push day)">
         <div id="bldBlocks"></div>
+      </div>
+      <div class="restbar" id="restBar">
+        <span class="rt" id="restTime">1:30</span>
+        <button class="rest-go" id="restToggle">Rest</button>
+        <div class="rest-target" id="restTargets">
+          <button data-r="60">1:00</button><button data-r="90" class="on">1:30</button><button data-r="120">2:00</button><button data-r="180">3:00</button>
+        </div>
       </div>
       <div class="bld-foot">
         <button class="add" id="bldAdd"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add exercise</button>
@@ -1116,8 +1131,20 @@ $("#bldTimer").onclick=toggleTimer;
 $("#pickSearch").oninput=e=>renderPick(e.target.value);
 $("#picker").addEventListener("click",e=>{if(e.target.id==="picker")closePicker();});
 
-function openBuilder(prefill){bld={name:"",blocks:(Array.isArray(prefill)&&prefill.length)?prefill:[],startTs:0,dur:0,timerInt:null,pickTarget:"new"};$("#bldName").value="";$("#bldTime").textContent="00:00";setTimerBtn(false);renderBlocks();$("#builder").classList.add("show");if(!bld.blocks.length)openPicker();}
-function closeBuilder(){if(bld.blocks.length&&!confirm("Discard this session?"))return;stopTick();$("#builder").classList.remove("show");}
+function openBuilder(prefill){bld={name:"",blocks:(Array.isArray(prefill)&&prefill.length)?prefill:[],startTs:0,dur:0,timerInt:null,pickTarget:"new"};$("#bldName").value="";$("#bldTime").textContent="00:00";setTimerBtn(false);renderBlocks();$("#builder").classList.add("show");stopRest();if(!bld.blocks.length)openPicker();}
+function closeBuilder(){if(bld.blocks.length&&!confirm("Discard this session?"))return;stopTick();stopRestInt();$("#builder").classList.remove("show");}
+
+/* rest timer between sets */
+let rest={target:90,int:null};
+function fmtRest(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function paintRest(v){const t=$("#restTime");if(t)t.textContent=fmtRest(v==null?rest.target:v);}
+function stopRestInt(){if(rest.int){clearInterval(rest.int);rest.int=null;}}
+function stopRest(){stopRestInt();const b=$("#restBar");if(b)b.classList.remove("active");const g=$("#restToggle");if(g)g.textContent="Rest";paintRest();}
+function beep(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const ac=new A(),o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;g.gain.value=.07;o.start();setTimeout(()=>{o.stop();ac.close();},180);}catch(e){}}
+function startRest(){stopRestInt();let left=rest.target;$("#restBar").classList.add("active");$("#restToggle").textContent="Skip";paintRest(left);
+  rest.int=setInterval(()=>{left--;if(left<=0){stopRestInt();$("#restBar").classList.remove("active");$("#restToggle").textContent="Rest";paintRest();try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}beep();showToast("Rest done","Next set.");}else paintRest(left);},1000);}
+$("#restToggle").onclick=()=>{if(rest.int)stopRest();else startRest();};
+$$("#restTargets button").forEach(b=>b.onclick=()=>{$$("#restTargets button").forEach(x=>x.classList.remove("on"));b.classList.add("on");rest.target=+b.dataset.r;if(!rest.int)paintRest();});
 
 function renderBlocks(){
   const c=$("#bldBlocks");
@@ -1137,7 +1164,7 @@ function renderBlocks(){
   $$("#bldBlocks [data-done]").forEach(x=>x.onclick=()=>{bld.blocks[+x.dataset.done].done=true;renderBlocks();});
   $$("#bldBlocks [data-edit]").forEach(x=>x.onclick=()=>{bld.blocks[+x.dataset.edit].done=false;renderBlocks();});
   $$("#bldBlocks [data-name]").forEach(x=>x.onclick=()=>openPicker(+x.dataset.name));
-  $$("#bldBlocks input[data-f]").forEach(inp=>inp.oninput=()=>{bld.blocks[+inp.dataset.b].sets[+inp.dataset.s][inp.dataset.f]=inp.value;});
+  $$("#bldBlocks input[data-f]").forEach(inp=>{inp.oninput=()=>{bld.blocks[+inp.dataset.b].sets[+inp.dataset.s][inp.dataset.f]=inp.value;};if(inp.dataset.f==="reps")inp.onchange=()=>{if(parseInt(inp.value)>0)startRest();};});
   $("#bldSave").disabled=!bld.blocks.length;
 }
 
@@ -1174,7 +1201,7 @@ function saveSession(){
   if(bld.dur>=0.5)ws.duration_min=Math.round(bld.dur);
   if(bld.name.trim())ws.session_name=bld.name.trim();
   addLog({entries:[{kind:"workout",workout_session:ws}],needs_review:[]});
-  stopTick();$("#builder").classList.remove("show");
+  stopTick();stopRestInt();$("#builder").classList.remove("show");
   showToast("Session saved",groups.length+" exercises"+(ws.duration_min?" · "+ws.duration_min+" min":""));
 }
 
