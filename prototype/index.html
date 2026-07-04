@@ -410,6 +410,26 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .pitem{display:block;width:100%;text-align:left;background:0;border:0;padding:11px 12px;font-size:15px;color:var(--ink);border-radius:9px}
 .pitem:active{background:var(--forest-tint)}
 .pfree{display:block;width:calc(100% - 24px);text-align:left;margin:6px 12px 12px;padding:12px;background:var(--forest-tint);border:1px solid #C6DDCC;border-radius:10px;color:var(--forest2);font-weight:650;font-size:14.5px}
+
+/* ---- structured-first Today ---- */
+.bigstart{width:100%;height:58px;font-size:16.5px;gap:10px;margin-top:8px}
+.bigstart .ic{width:20px;height:20px;stroke:#FBF7EF;fill:none;stroke-width:1.7}
+.daytabs{display:flex;gap:5px;background:var(--card2);border-radius:12px;padding:4px;margin-top:18px}
+.daytab{flex:1;height:38px;border:0;background:0;border-radius:9px;font-size:14px;font-weight:650;color:var(--muted);font-family:inherit}
+.daytab.active{background:var(--card);color:var(--ink);box-shadow:var(--sh)}
+.daypanel{margin-top:14px}
+.foodadd{display:flex;gap:8px;margin-bottom:12px}
+#foodInput{flex:1;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;min-width:0}
+#foodInput:focus{outline:0;border-color:var(--forest)}
+.foodcam{width:48px;flex:none;border:1px solid var(--line2);background:var(--card);border-radius:12px}
+.foodcam .ic{width:20px;height:20px;stroke:var(--ink2);fill:none;stroke-width:1.7}
+.foodgo{width:auto;padding:0 18px;flex:none;height:auto}
+.food-empty,.train-empty{text-align:center;padding:22px 14px;color:var(--muted);font-size:13.5px;line-height:1.7}
+.sesscard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px;box-shadow:var(--sh);margin-bottom:10px;cursor:pointer}
+.sesscard .st{display:flex;align-items:center;gap:8px}
+.sesscard .snm{font-size:15px;font-weight:650;color:var(--ink)}
+.sesscard .smeta{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.sesscard .sex{font-size:12.5px;color:var(--muted);margin-top:6px}
 </style>
 </head>
 <body>
@@ -495,28 +515,21 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
       <section class="screen active" id="s-today">
         <div class="greet"><div class="date" id="dateK">Wed 1 Jul</div><h2 id="greetH">Good evening</h2></div>
 
-        <div class="composer">
-          <div class="lbl">Today's log</div>
-          <textarea id="input" placeholder="Write your day the way you'd say it. Food or training.&#10;e.g. Bench 80kg x8, drop 50kg x7 + 57.5kg x4, then 5 eggs"></textarea>
-          <div class="crow">
-            <button class="pillbtn" id="mic" aria-label="Voice"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</button>
-            <button class="pillbtn" id="cam" aria-label="Photo"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h1.5l1-1.5h5l1 1.5H21a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>Photo</button>
+        <button class="btn bigstart" id="startTraining"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M4 9l2-2M20 15l-2 2M7 4l3 3M17 20l-3-3M3.5 12.5l1-1M19.5 11.5l1 1"/></svg>Start training</button>
+
+        <div class="daytabs">
+          <button class="daytab active" data-day="training">Training</button>
+          <button class="daytab" data-day="food">Food</button>
+        </div>
+
+        <div class="daypanel" id="dayTraining"><div id="todayTraining"></div></div>
+        <div class="daypanel" id="dayFood" style="display:none">
+          <div class="foodadd">
+            <input id="foodInput" placeholder="What did you eat? e.g. chicken 200g, rice">
+            <button class="foodcam" id="foodCam" aria-label="Photo"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h1.5l1-1.5h5l1 1.5H21a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z"/><circle cx="12" cy="12.5" r="3.2"/></svg></button>
+            <button class="btn foodgo" id="foodAdd">Add</button>
           </div>
-          <button class="btn" id="log" style="margin-top:10px">Log it<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-        </div>
-
-        <button class="newsession" id="newSession"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M4 9l2-2M20 15l-2 2M7 4l3 3M17 20l-3-3M3.5 12.5l1-1M19.5 11.5l1 1"/></svg>Build a training session</button>
-
-        <div class="chips">
-          <button data-s="ctx">Mixed day</button><button data-s="lift">Drop and twins</button>
-          <button data-s="diet">Diet only</button><button data-s="metrics">Body metrics</button>
-        </div>
-
-        <div id="result"></div>
-
-        <div class="card rise" id="dash">
-          <div class="lbl">Today</div>
-          <div id="todayLog"></div>
+          <div id="todayFood"></div>
         </div>
 
         <div class="row2">
@@ -801,71 +814,76 @@ function catTag(d){const t=logTitle(d),m={Training:["Training","var(--forest-tin
 function logSummary(d){const f=d.entries.flatMap(e=>e.meal_items||[]).length,x=d.entries.flatMap(e=>e.workout_session?.set_groups||[]).length,b=d.entries.flatMap(e=>e.body_metrics||[]).length,p=[];if(f)p.push(f+(f===1?" food":" foods"));if(x)p.push(x+(x===1?" exercise":" exercises"));if(b)p.push(b+" body "+(b===1?"metric":"metrics"));return p.join(" · ")||"entry";}
 function logItemHtml(l){return '<div class="logitem" data-ts="'+l.ts+'"><div class="lt">'+fmtTime(l.ts)+'</div><div class="lc"><div>'+catTag(l.data)+'<span class="ltitle">'+logTitle(l.data)+'</span></div><div class="lmeta">'+logSummary(l.data)+'</div></div><span class="chev">›</span></div>';}
 function deleteLog(ts){saveLogs(loadLogs().filter(l=>l.ts!==ts));refreshState();showToast("Log deleted","It is gone from your journal.");}
+let openDetail=null,openTs=null;
+function renderDetail(det,log){currentLogTs=log.ts;lastParse=log.data;openDetail=det;openTs=log.ts;
+  renderResult(det,log.data,{editable:true,showShare:false});
+  const db=el('<button class="delbtn"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--clay2)"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>Delete log</button>');
+  db.onclick=e=>{e.stopPropagation();if(confirm("Delete this log?"))deleteLog(log.ts);};
+  det.appendChild(db);}
 function bindLogItems(c){$$(".logitem",c).forEach(item=>{item.onclick=()=>{
   const open=item.nextElementSibling&&item.nextElementSibling.classList.contains("logdetail");
   $$(".logdetail",c).forEach(x=>x.remove());$$(".logitem",c).forEach(x=>x.classList.remove("open"));
   if(open)return;
   const ts=+item.dataset.ts,log=loadLogs().find(l=>l.ts===ts);if(!log)return;
   item.classList.add("open");
-  const det=el('<div class="logdetail"></div>');
-  renderResult(det,log.data,{compact:true});
-  const db=el('<button class="delbtn"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--clay2)"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>Delete log</button>');
-  db.onclick=e=>{e.stopPropagation();if(confirm("Delete this log?"))deleteLog(ts);};
-  det.appendChild(db);
-  det.onclick=e=>e.stopPropagation();
-  item.after(det);};});}
+  const det=el('<div class="logdetail"></div>');det.onclick=e=>e.stopPropagation();item.after(det);
+  renderDetail(det,log);};});}
 function todayTotals(logs){const t={kcal:0,protein:0,foods:0,sets:0,pending:0};
   logs.forEach(l=>l.data.entries.forEach(e=>{(e.meal_items||[]).forEach(m=>{t.foods++;if(m.kcal!=null)t.kcal+=m.kcal;if(m.proteinG!=null)t.protein+=m.proteinG;else if(m.lookup_needed)t.pending++;});
     (e.workout_session?.set_groups||[]).forEach(g=>t.sets+=g.sets.length);}));return t;}
-function renderToday(){const c=$("#todayLog");if(!c)return;const today=dayKey(Date.now()),logs=loadLogs().filter(l=>dayKey(l.ts)===today).reverse();
-  if(!logs.length){c.innerHTML='<div class="empty">Nothing logged yet today.<br>Write above and tap Log it.</div>';return;}
-  const t=todayTotals(logs);let strip="";
-  const stat=(n,l)=>'<div class="sumstat"><div class="sn">'+n+'</div><div class="sl">'+l+'</div></div>';
-  if(t.kcal||t.protein||t.sets){strip='<div class="sumrow">'+(t.kcal?stat(Math.round(t.kcal),"kcal"):"")+(t.protein?stat(Math.round(t.protein)+"g","protein"):"")+(t.foods?stat(t.foods,"foods"):"")+(t.sets?stat(t.sets,"sets"):"")+'</div>'+(t.pending?'<div class="pendline">'+t.pending+' food'+(t.pending>1?"s":"")+' pending macros — tap them to fill in</div>':"");}
-  const tgt=loadTargets();let bars="";
-  if(tgt&&(t.protein||t.kcal)){
-    const bar=(label,val,max,color)=>{const p=Math.min(100,Math.round(val/max*100));
-      return '<div class="macro" style="margin:10px 0 2px"><div class="mtop"><b>'+label+'</b><span>'+Math.round(val)+' / '+max+'</span></div><div class="mbar"><div class="mfill" style="width:'+p+'%;background:'+color+'"></div></div></div>';};
-    bars='<div style="padding:2px 2px 10px;border-bottom:1px solid var(--line);margin-bottom:4px">'
-      +(t.protein?bar("Protein (g)",t.protein,tgt.protein,"var(--forest)"):"")
-      +(t.kcal?bar("Calories",t.kcal,tgt.kcal,"var(--clay)"):"")+'</div>';}
-  c.innerHTML=strip+bars+logs.map(logItemHtml).join("");bindLogItems(c);}
+function sessCard(l){const ws=(l.data.entries.find(e=>e.workout_session)||{}).workout_session||{};const gs=ws.set_groups||[];const dur=ws.duration_min?ws.duration_min+" min":"";const names=gs.map(g=>g.verbatim_name).slice(0,4).join(", ")+(gs.length>4?"…":"");
+  return '<div class="sesscard" data-ts="'+l.ts+'"><div class="st"><span class="snm">'+esc(ws.session_name||"Training")+'</span><span class="smeta">'+fmtTime(l.ts)+(dur?" · "+dur:"")+'</span></div><div class="sex">'+gs.length+' exercise'+(gs.length===1?"":"s")+(names?' · '+esc(names):"")+'</div></div>';}
+function openLog(ts){const card=$('#todayTraining .sesscard[data-ts="'+ts+'"]');if(!card)return;
+  const nx=card.nextElementSibling;if(nx&&nx.classList.contains("logdetail")){nx.remove();return;}
+  $$("#todayTraining .logdetail").forEach(x=>x.remove());
+  const log=loadLogs().find(l=>l.ts===ts);if(!log)return;
+  const det=el('<div class="logdetail"></div>');det.onclick=e=>e.stopPropagation();card.after(det);renderDetail(det,log);}
+function renderToday(){
+  const today=dayKey(Date.now()),logs=loadLogs().filter(l=>dayKey(l.ts)===today).reverse();
+  const tc=$("#todayTraining");
+  if(tc){const sess=logs.filter(l=>l.data.entries.some(e=>e.workout_session));
+    tc.innerHTML=sess.length?sess.map(sessCard).join(""):'<div class="train-empty">No training yet today.<br>Tap Start training to build one.</div>';
+    $$("#todayTraining .sesscard").forEach(x=>x.onclick=()=>openLog(+x.dataset.ts));}
+  const fc=$("#todayFood");
+  if(fc){const foods=logs.filter(l=>l.data.entries.some(e=>(e.meal_items||[]).length||(e.body_metrics||[]).length));
+    const t=todayTotals(logs);let strip="";
+    const stat=(n,l)=>'<div class="sumstat"><div class="sn">'+n+'</div><div class="sl">'+l+'</div></div>';
+    if(t.kcal||t.protein||t.foods){strip='<div class="sumrow">'+(t.kcal?stat(Math.round(t.kcal),"kcal"):"")+(t.protein?stat(Math.round(t.protein)+"g","protein"):"")+(t.foods?stat(t.foods,"foods"):"")+'</div>'+(t.pending?'<div class="pendline">'+t.pending+' food'+(t.pending>1?"s":"")+' pending macros — tap to fill in</div>':"");}
+    const tgt=loadTargets();let bars="";
+    if(tgt&&(t.protein||t.kcal)){const bar=(label,val,max,color)=>{const p=Math.min(100,Math.round(val/max*100));return '<div class="macro" style="margin:10px 0 2px"><div class="mtop"><b>'+label+'</b><span>'+Math.round(val)+' / '+max+'</span></div><div class="mbar"><div class="mfill" style="width:'+p+'%;background:'+color+'"></div></div></div>';};
+      bars='<div style="padding:2px 2px 10px;border-bottom:1px solid var(--line);margin-bottom:10px">'+(t.protein?bar("Protein (g)",t.protein,tgt.protein,"var(--forest)"):"")+(t.kcal?bar("Calories",t.kcal,tgt.kcal,"var(--clay)"):"")+'</div>';}
+    fc.innerHTML=strip+bars+(foods.length?'<div class="card" style="padding:2px 16px">'+foods.map(logItemHtml).join("")+'</div>':'<div class="food-empty">No food logged yet.<br>Add what you ate above.</div>');
+    bindLogItems(fc);}}
 function renderJournal(){const c=$("#journalList");if(!c)return;const logs=loadLogs().slice().reverse();if(!logs.length){c.innerHTML='<div class="empty">Your journal is empty.<br>Every day you log will appear here.</div>';return;}const byDay={};logs.forEach(l=>{const k=dayKey(l.ts);(byDay[k]=byDay[k]||[]).push(l);});c.innerHTML=Object.keys(byDay).map(day=>'<div class="journal-day"><div class="dh">'+day+'</div><div class="card" style="padding:2px 16px">'+byDay[day].map(logItemHtml).join("")+'</div></div>').join("");bindLogItems(c);}
 function computeStreak(){const set=new Set(loadLogs().map(l=>dayKey(l.ts)));let n=0,d=new Date();while(set.has(d.toDateString())){n++;d.setDate(d.getDate()-1);}return n;}
 function updateStats(){const s=computeStreak(),sn=$("#streakN");if(sn)sn.textContent=s;const sh=$("#streakHint");if(sh)sh.textContent=s?"Keep it going. Do not break the chain.":"Log today to start your streak.";const wn=$("#weekN");if(wn)wn.textContent=loadLogs().filter(l=>l.ts>=Date.now()-6*864e5).length;}
-function refreshState(){renderToday();renderJournal();updateStats();
-  const ch=$(".chips");if(ch)ch.style.display=loadLogs().length>=3?"none":"";}
+function refreshState(){renderToday();renderJournal();updateStats();}
 
-$$(".chips button").forEach(b=>b.onclick=()=>{$("#input").value=SAMPLES[b.dataset.s];$("#input").focus();grow($("#input"));});
-$("#input").addEventListener("input",()=>grow($("#input")));
-$("#input").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();submit("text");}});
+$("#startTraining").onclick=openBuilder;
+$$(".daytab").forEach(t=>t.onclick=()=>{$$(".daytab").forEach(x=>x.classList.remove("active"));t.classList.add("active");const d=t.dataset.day;$("#dayTraining").style.display=d==="training"?"":"none";$("#dayFood").style.display=d==="food"?"":"none";});
+$("#foodAdd").onclick=()=>logFood($("#foodInput").value.trim());
+$("#foodInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();logFood($("#foodInput").value.trim());}});
+$("#foodCam").onclick=()=>{const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>logFood("",r.result);r.readAsDataURL(f);};i.click();};
 
 fetch("/mode").then(r=>r.json()).then(m=>setBadge(m.live)).catch(()=>setBadge(null));
 function setBadge(live){const b=$("#badge"),t=$("#badgeText");if(live===true){b.className="badge live";t.textContent="LIVE";}else if(live===false){b.className="badge demo";t.textContent="DEMO";}else{b.className="badge demo";t.textContent="OFFLINE";}}
 
-$("#cam").onclick=()=>{const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>submit("photo",r.result);r.readAsDataURL(f);};i.click();};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
-$("#mic").onclick=()=>{if(!SR){alert("This browser has no speech recognition. Use Chrome, or just type.");return;}if(rec){rec.stop();return;}rec=new SR();rec.lang=isRtl($("#input").value)?"he-IL":"en-US";rec.interimResults=true;rec.continuous=true;const mic=$("#mic");mic.classList.add("rec");mic.innerHTML='<span class="rd"></span>Listening';let base=$("#input").value?$("#input").value+" ":"";rec.onresult=ev=>{let t="";for(const r of ev.results)t+=r[0].transcript;$("#input").value=base+t;};rec.onend=()=>{mic.classList.remove("rec");mic.innerHTML='<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice';rec=null;};rec.start();};
-$("#log").onclick=()=>submit("text");
+/* free-text composer removed: training is structured, food uses the quick-add above */
 
 let lastParse=null;
-async function submit(source,imageBase64){
-  const text=$("#input").value.trim();if(!text&&source!=="photo")return;
-  const btn=$("#log");btn.disabled=true;$(".screens").scrollTo({top:150,behavior:"smooth"});showThinking();
+async function logFood(text,imageBase64){
+  if(!text&&!imageBase64)return;
+  const add=$("#foodAdd");const old=add.textContent;add.disabled=true;add.textContent="…";
   try{let out;
-    try{const res=await fetch("/parse",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text,source,imageBase64})});out=await res.json();if(out.error)throw new Error(out.error);}
+    try{const res=await fetch("/parse",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text,source:imageBase64?"photo":"text",imageBase64})});out=await res.json();if(out.error)throw new Error(out.error);}
     catch(err){if(location.protocol==="file:")out=OFFLINE_MOCK;else throw err;}
-    setBadge(out.mocked?false:true);out.data=applyAliases(out.data);lastParse=out.data;addLog(out.data);render(out);maybeReward(out.data);
-    $("#input").value="";$("#input").style.height="";
-  }catch(e){$("#result").innerHTML='<div class="errbox rise">'+esc(String(e.message||e))+'</div>';}
-  finally{btn.disabled=false;}
+    setBadge(out.mocked?false:true);addLog(out.data);$("#foodInput").value="";
+    showToast("Food logged",out.mocked?"Demo sample. Add an API key for real parsing.":"");
+  }catch(e){showToast("Could not log",String(e.message||e));}
+  finally{add.disabled=false;add.textContent=old;}
 }
 function showThinkingInto(R){R.innerHTML='<div class="thinking"><div class="think-row">Reading your log<span class="tdot"><i></i><i></i><i></i></span></div><div class="skel"></div><div class="skel" style="width:76%"></div></div>';}
-function showThinking(){showThinkingInto($("#result"));}
-
-function render(out){ renderMain(); }
-function renderMain(){ renderResult($("#result"),lastParse,{showShare:true,editable:true}); }
-function commitEdit(){ updateCurrentLog(); renderMain(); }
+function commitEdit(){ updateCurrentLog(); if(openDetail&&document.contains(openDetail)){const log=loadLogs().find(l=>l.ts===openTs);if(log)renderDetail(openDetail,log);} refreshState(); }
 const escAttr=s=>esc(s).replace(/"/g,"&quot;");
 
 function renderResult(R,d,opts){opts=opts||{};const ed=!!opts.editable;
@@ -924,7 +942,7 @@ function renderResult(R,d,opts){opts=opts||{};const ed=!!opts.editable;
       const mch=r.question.match(/[Dd]id ['"](.+?)['"] mean ['"](.+?)['"]/);
       if(mch&&ed){addAlias(mch[1],mch[2]);
         d.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>{if(g.verbatim_name.trim().toLowerCase()===mch[1].trim().toLowerCase()){g.verbatim_name=mch[2];g.confidence_score=.99;}}));
-        d.needs_review=d.needs_review.filter(x=>x!==r);updateCurrentLog();renderMain();
+        d.needs_review=d.needs_review.filter(x=>x!==r);commitEdit();
         showToast("Alias learned",'"'+mch[1]+'" now always means '+mch[2]+".");return;}
       rv.classList.add("done");rv.querySelector(".q").textContent="Saved. We will not ask again.";rv.querySelector(".btns").remove();};
     rv.querySelector(".fix").onclick=()=>{rv.classList.add("done");rv.querySelector(".q").textContent="Tap the item above to edit it.";rv.querySelector(".btns").remove();};
@@ -1041,7 +1059,6 @@ const EXDB={
 };
 let bld={name:"",blocks:[],startTs:0,dur:0,timerInt:null,pickTarget:"new"};
 
-$("#newSession").onclick=openBuilder;
 $("#bldClose").onclick=closeBuilder;
 $("#bldName").oninput=e=>bld.name=e.target.value;
 $("#bldAdd").onclick=()=>openPicker();
