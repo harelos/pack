@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Pack",
+    "slug": "pack",
+    "scheme": "pack",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "app.pack.mobile",
+      "permissions": []
+    },
+    "ios": {
+      "bundleIdentifier": "app.pack.mobile",
+      "supportsTablet": false
+    },
+    "extra": {
+      "apiBaseUrl": "http://localhost:3000"
+    }
+  }
+}

@@ -1,0 +1,223 @@
+[
+  { "id": "context-diet", "source": "text",
+    "input": "5 ביצים, חמישית גמבה צהובה, שייק חלבון (מנה 24 גרם), 1 mbeju.",
+    "expect": [
+      { "type": "mealCount", "equals": 4 },
+      { "type": "fractionValue", "verbatimIncludes": "גמבה", "equals": 0.2 },
+      { "type": "lookupNeeded", "verbatimIncludes": "mbeju", "equals": true },
+      { "type": "lookupNeeded", "verbatimIncludes": "חלבון", "equals": true },
+      { "type": "lookupNeeded", "verbatimIncludes": "ביצים", "equals": false }
+    ]
+  },
+  { "id": "context-workout", "source": "text",
+    "input": "Duration 90 min, post-workout weight 64.7kg\n12 dilgiot (bodyweight)\nPush Ups: Set 1 20, Set 2 24, Set 3 30\nCable triceps: 35kg x 12, 42.5kg x 13, drop 50kg x 7 + 57.5kg x 4\nAbs cable: 57.5kg x 20, 80kg x 12, 95kg x 6 + 65kg x 6\nJump rope: Set 1 uncounted, Set 2: 75, Set 3: 100",
+    "expect": [
+      { "type": "sessionDuration", "equals": 90 },
+      { "type": "bodyMetric", "metricType": "weight", "equals": 64.7 },
+      { "type": "setGroupKind", "verbatimIncludes": "Cable triceps", "equals": "drop_set" },
+      { "type": "isUncounted", "verbatimIncludes": "Jump rope", "setOrder": 1, "equals": true },
+      { "type": "needsReviewContains", "substr": "dilgiot" },
+      { "type": "setBodyweight", "verbatimIncludes": "dilgiot", "setOrder": 1, "equals": true }
+    ]
+  },
+  { "id": "twins-and-bw", "source": "text",
+    "input": "Squat machine: 70kg x 5 + 70kg twins x 7 + 70k x 3, 90kg x 5 + 90kg twins x 5 + bw squats x 5, 110k x 5 + bw squats x 5",
+    "expect": [
+      { "type": "anySetTwins", "verbatimIncludes": "Squat", "equals": true },
+      { "type": "anySetBodyweight", "verbatimIncludes": "Squat", "equals": true },
+      { "type": "loadPresent", "verbatimIncludes": "Squat", "load": 110 }
+    ]
+  },
+  { "id": "english-simple", "source": "text",
+    "input": "Breakfast: 2 slices whole wheat bread, 30g peanut butter, 1 banana",
+    "expect": [ { "type": "mealCount", "equals": 3 }, { "type": "lookupNeeded", "verbatimIncludes": "banana", "equals": false } ]
+  },
+  { "id": "spanish-mixed", "source": "text",
+    "input": "Almuerzo: media pechuga de pollo, un puñado de arroz, 2 huevos",
+    "expect": [ { "type": "mealCount", "equals": 3 }, { "type": "fractionValue", "verbatimIncludes": "pechuga", "equals": 0.5 } ]
+  },
+  { "id": "superset", "source": "text",
+    "input": "Superset: Bench press 60kg x 10 then Incline DB 22.5kg x 12",
+    "expect": [ { "type": "anyGroupKind", "equals": "superset" } ]
+  },
+  { "id": "rpe-unit", "source": "text",
+    "input": "Deadlift: worked up to RPE 8 at 140kg x 3",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "Deadlift", "load": 140 } ]
+  },
+  { "id": "voice-runon", "source": "voice",
+    "input": "okay so today I ate like three eggs a coffee with milk and then trained legs squats a hundred kilos for five reps three sets",
+    "expect": [ { "type": "hasWorkout", "equals": true }, { "type": "hasDiet", "equals": true } ]
+  },
+  { "id": "typos", "source": "text",
+    "input": "Cable row: 45kx12, 50kx10, 55k x 8",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "Cable row", "load": 55 } ]
+  },
+  { "id": "hebrew-only-diet", "source": "text",
+    "input": "ארוחת ערב: חזה עוף 200 גרם, חצי כוס אורז, סלט ירקות",
+    "expect": [ { "type": "mealCount", "equals": 3 }, { "type": "fractionValue", "verbatimIncludes": "אורז", "equals": 0.5 } ]
+  },
+  { "id": "rest-pause", "source": "text",
+    "input": "Pull ups rest-pause: 12 then 5 then 3 bodyweight",
+    "expect": [ { "type": "anyGroupKind", "equals": "rest_pause" }, { "type": "anySetBodyweight", "verbatimIncludes": "Pull", "equals": true } ]
+  },
+  { "id": "lb-unit", "source": "text",
+    "input": "Bench: 135lb x 10, 155lb x 8, 185lb x 5",
+    "expect": [ { "type": "setUnit", "verbatimIncludes": "Bench", "setOrder": 1, "equals": "lb" } ]
+  },
+  { "id": "unknown-food", "source": "text",
+    "input": "1 chipa guasu, 2 tortillas paraguayas",
+    "expect": [ { "type": "lookupNeeded", "verbatimIncludes": "chipa", "equals": true } ]
+  },
+  { "id": "body-metrics-only", "source": "text",
+    "input": "morning weight 64.2kg, HRV 58, slept 7.5h, mood 8/10",
+    "expect": [ { "type": "bodyMetric", "metricType": "weight", "equals": 64.2 }, { "type": "hasWorkout", "equals": false } ]
+  },
+  { "id": "russian-diet", "source": "text",
+    "input": "Завтрак: 3 яйца, полбанана, стакан молока",
+    "expect": [ { "type": "mealCount", "equals": 3 }, { "type": "fractionValue", "verbatimIncludes": "банан", "equals": 0.5 } ]
+  },
+  { "id": "arabic-diet", "source": "text",
+    "input": "الفطور: بيضتان، ربع رغيف خبز، ملعقة زيت زيتون",
+    "expect": [ { "type": "mealCount", "equals": 3 }, { "type": "fractionValue", "verbatimIncludes": "خبز", "equals": 0.25 } ]
+  },
+  { "id": "band-unit", "source": "text",
+    "input": "Face pulls with red band x 20, x 18, x 15",
+    "expect": [ { "type": "setUnit", "verbatimIncludes": "Face pulls", "setOrder": 1, "equals": "band" } ]
+  },
+  { "id": "giant-set", "source": "text",
+    "input": "Giant set shoulders: lateral raise 10kg x 15, front raise 8kg x 12, rear delt 6kg x 15, shrugs 40kg x 20",
+    "expect": [ { "type": "anyGroupKind", "equals": "giant_set" } ]
+  },
+  { "id": "cluster-set", "source": "text",
+    "input": "Cluster squats: 100kg 3+3+3 with 15s rest",
+    "expect": [ { "type": "anyGroupKind", "equals": "cluster" }, { "type": "loadPresent", "verbatimIncludes": "squat", "load": 100 } ]
+  },
+  { "id": "compound-pair", "source": "text",
+    "input": "Leg press compound: 200kg x 8 + calf raise 200kg x 20 back to back",
+    "expect": [ { "type": "anyGroupKind", "equals": "compound_pair" } ]
+  },
+  { "id": "mixed-he-en-workout", "source": "text",
+    "input": "סקוואט 100 קילו x 5, בנץ' 80kg x 8, deadlift 140 x 3",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "deadlift", "load": 140 }, { "type": "hasWorkout", "equals": true } ]
+  },
+  { "id": "third-fraction-en", "source": "text",
+    "input": "a third of a large pizza, one protein bar",
+    "expect": [ { "type": "fractionValue", "verbatimIncludes": "pizza", "equals": 0.333 } ]
+  },
+  { "id": "quarter-hebrew", "source": "text",
+    "input": "רבע אבטיח, 200 גרם קוטג'",
+    "expect": [ { "type": "fractionValue", "verbatimIncludes": "אבטיח", "equals": 0.25 } ]
+  },
+  { "id": "shlish-translit", "source": "text",
+    "input": "shlish challah, 2 spoons hummus",
+    "expect": [ { "type": "fractionValue", "verbatimIncludes": "challah", "equals": 0.333 } ]
+  },
+  { "id": "uncounted-mid", "source": "text",
+    "input": "Farmer carries: round 1 40m, round 2 uncounted, round 3 40m",
+    "expect": [ { "type": "isUncounted", "verbatimIncludes": "Farmer", "setOrder": 2, "equals": true } ]
+  },
+  { "id": "double-drop", "source": "text",
+    "input": "Leg extension: 60kg x 12 drop 45kg x 10 drop 30kg x 12",
+    "expect": [ { "type": "setGroupKind", "verbatimIncludes": "Leg extension", "equals": "drop_set" } ]
+  },
+  { "id": "weight-only-lb", "source": "text",
+    "input": "weighed in at 142.5 lb this morning",
+    "expect": [ { "type": "bodyMetric", "metricType": "weight", "equals": 142.5 } ]
+  },
+  { "id": "girth-metrics", "source": "text",
+    "input": "waist 82cm, arm 38cm cold",
+    "expect": [ { "type": "bodyMetric", "metricType": "girth_waist", "equals": 82 } ]
+  },
+  { "id": "sleep-hrv", "source": "text",
+    "input": "slept 6.5 hours, resting hr 52, hrv 61",
+    "expect": [ { "type": "bodyMetric", "metricType": "sleep_hours", "equals": 6.5 }, { "type": "bodyMetric", "metricType": "resting_hr", "equals": 52 } ]
+  },
+  { "id": "mixed-meal-workout", "source": "text",
+    "input": "Post workout: chicken 250g and rice. Trained: bench 70kg x 8x3",
+    "expect": [ { "type": "hasDiet", "equals": true }, { "type": "hasWorkout", "equals": true } ]
+  },
+  { "id": "spanish-workout", "source": "text",
+    "input": "Sentadilla 100kg x 5, press banca 80kg x 8, peso muerto 140kg x 3",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "muerto", "load": 140 } ]
+  },
+  { "id": "portion-word-cup", "source": "text",
+    "input": "1 cup cooked oats, 1 scoop whey",
+    "expect": [ { "type": "mealCount", "equals": 2 }, { "type": "lookupNeeded", "verbatimIncludes": "whey", "equals": true } ]
+  },
+  { "id": "bw-only", "source": "text",
+    "input": "Dips bodyweight x 12, x 10, x 8",
+    "expect": [ { "type": "anySetBodyweight", "verbatimIncludes": "Dips", "equals": true } ]
+  },
+  { "id": "half-kg-loads", "source": "text",
+    "input": "Curl: 12.5kg x 12, 15kg x 10, 17.5kg x 8",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "Curl", "load": 17.5 } ]
+  },
+  { "id": "translit-exercise", "source": "text",
+    "input": "chest press mechona 50kg x 12",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "mechona", "load": 50 } ]
+  },
+  { "id": "no-reps-just-time", "source": "text",
+    "input": "Plank: 60s, 45s, 30s",
+    "expect": [ { "type": "hasWorkout", "equals": true } ]
+  },
+  { "id": "multi-lang-triple", "source": "text",
+    "input": "2 ביצים, media palta, 1 chipa",
+    "expect": [ { "type": "mealCount", "equals": 3 }, { "type": "fractionValue", "verbatimIncludes": "palta", "equals": 0.5 }, { "type": "lookupNeeded", "verbatimIncludes": "chipa", "equals": true } ]
+  },
+  { "id": "kg-typo-k", "source": "text",
+    "input": "OHP: 40k x 8, 45k x 6, 50k x 4",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "OHP", "load": 50 } ]
+  },
+  { "id": "then-sequence", "source": "text",
+    "input": "Incline press 60kg x 8 then flyes 12kg x 15",
+    "expect": [ { "type": "anyGroupKind", "equals": "superset" } ]
+  },
+  { "id": "diet-with-brand", "source": "text",
+    "input": "1 Quest bar chocolate, 1 apple",
+    "expect": [ { "type": "lookupNeeded", "verbatimIncludes": "Quest", "equals": true }, { "type": "lookupNeeded", "verbatimIncludes": "apple", "equals": false } ]
+  },
+  { "id": "russian-workout", "source": "text",
+    "input": "Присед 120 кг x 5, жим 90 кг x 5, тяга 150 кг x 3",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "тяга", "load": 150 } ]
+  },
+  { "id": "subjective-mood", "source": "text",
+    "input": "feeling 6/10 today, tired legs",
+    "expect": [ { "type": "bodyMetric", "metricType": "subjective_mood", "equals": 6 } ]
+  },
+  { "id": "big-mixed-day", "source": "text",
+    "input": "Diet: 4 eggs, 100g oats, 1 banana, whey shake. Workout 75min: squat 100kg x5x3, RDL 90kg x8, leg curl drop 50kg x10 + 35kg x10",
+    "expect": [ { "type": "sessionDuration", "equals": 75 }, { "type": "setGroupKind", "verbatimIncludes": "leg curl", "equals": "drop_set" }, { "type": "lookupNeeded", "verbatimIncludes": "whey", "equals": true } ]
+  },
+  { "id": "ambiguous-abbrev", "source": "text",
+    "input": "did BB rows 70kg x 10 and pendlay 80kg x 5",
+    "expect": [ { "type": "loadPresent", "verbatimIncludes": "pendlay", "load": 80 } ]
+  },
+  { "id": "fraction-half-en", "source": "text",
+    "input": "half an avocado, 2 rice cakes",
+    "expect": [ { "type": "fractionValue", "verbatimIncludes": "avocado", "equals": 0.5 } ]
+  },
+  { "id": "two-thirds", "source": "text",
+    "input": "two thirds cup greek yogurt, handful almonds",
+    "expect": [ { "type": "fractionValue", "verbatimIncludes": "yogurt", "equals": 0.667 } ]
+  },
+  { "id": "uncounted-diet-qty", "source": "text",
+    "input": "some nuts, a bit of chocolate, 1 espresso",
+    "expect": [ { "type": "needsReviewContains", "substr": "nuts" } ]
+  },
+  { "id": "machine-stack", "source": "text",
+    "input": "Lat pulldown: stack 10 x 12, stack 12 x 10",
+    "expect": [ { "type": "hasWorkout", "equals": true } ]
+  },
+  { "id": "voice-diet-only", "source": "voice",
+    "input": "um for lunch I had a big bowl of pasta with tomato sauce and a side salad",
+    "expect": [ { "type": "hasDiet", "equals": true }, { "type": "hasWorkout", "equals": false } ]
+  },
+  { "id": "compound-plus-bw", "source": "text",
+    "input": "Bulgarian split squat 20kg x 8 each + jump squats bw x 10",
+    "expect": [ { "type": "anySetBodyweight", "verbatimIncludes": "split squat", "equals": true } ]
+  },
+  { "id": "hebrew-metrics-mixed", "source": "text",
+    "input": "משקל בוקר 65.1kg, ישנתי 8 שעות, hrv 55",
+    "expect": [ { "type": "bodyMetric", "metricType": "weight", "equals": 65.1 }, { "type": "bodyMetric", "metricType": "sleep_hours", "equals": 8 } ]
+  }
+]

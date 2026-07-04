@@ -1,0 +1,331 @@
+// Pack Prisma schema. Full rationale in ../../../Pack-Fitness-App-Blueprint.md (Section 3).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooled (pgbouncer) for app
+  directUrl = env("DIRECT_URL")     // direct for migrations
+}
+
+// ---------- ENUMS ----------
+enum Sex            { male female other unspecified }
+enum GoalType       { fat_loss muscle_gain recomp maintain performance }
+enum EntryKind      { diet workout body_metric mixed }
+enum InputSource    { text voice photo manual import }
+enum LoadUnit       { kg lb bw band rpe }
+enum SetGroupKind   { straight superset giant_set drop_set cluster rest_pause compound_pair }
+enum MetricType {
+  weight girth_waist girth_hip girth_arm girth_thigh girth_chest
+  hrv resting_hr sleep_hours subjective_mood body_fat_pct steps vo2max
+}
+enum InsightKind    { weekly_letter correlation trend anomaly nudge }
+enum AuditAction    { llm_parsed user_confirmed user_edited user_rejected reparsed }
+enum ReviewStatus   { pending confirmed rejected auto_accepted }
+
+// ---------- IDENTITY ----------
+model User {
+  id          String    @id @default(uuid())
+  authId      String    @unique
+  email       String    @unique
+  displayName String?
+  locale      String    @default("he-IL")
+  timezone    String    @default("Asia/Jerusalem")
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  profile     Profile?
+  goals       Goal[]
+  entries     Entry[]
+  metrics     Metric[]
+  customFoods UserCustomFood[]
+  exAliases   UserExerciseAlias[]
+  insights    Insight[]
+  readiness   ReadinessScore[]
+  streak      Streak?
+  auditLogs   AuditLog[]
+
+  @@index([authId])
+  @@map("users")
+}
+
+model Profile {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sex         Sex       @default(unspecified)
+  birthDate   DateTime?
+  heightCm    Float?
+  activityLvl Float     @default(1.4)
+  updatedAt   DateTime  @updatedAt
+  @@map("profiles")
+}
+
+model Goal {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalType       GoalType
+  targetWeightKg Float?
+  weeklyRateKg   Float?
+  proteinG       Int?
+  effectiveFrom  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  @@index([userId, effectiveFrom])
+  @@map("goals")
+}
+
+// ---------- ENTRIES ----------
+model Entry {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind              EntryKind
+  source            InputSource
+  rawInputText      String?      @db.Text
+  rawInputAudioUrl  String?
+  loggedAt          DateTime
+  createdAt         DateTime     @default(now())
+  parserModel       String?
+  parserVersion     String?
+  overallConfidence Float?
+
+  meals    MealItem[]
+  session  WorkoutSession?
+  reviews  ReviewItem[]
+  audit    AuditLog[]
+
+  @@index([userId, loggedAt])
+  @@index([userId, kind, loggedAt])
+  @@index([parserVersion])
+  @@map("entries")
+}
+
+// ---------- FOOD ----------
+model FoodItem {
+  id             String   @id @default(uuid())
+  canonicalName  String
+  normalizedKey  String   @unique
+  kcalPer100g    Float?
+  proteinPer100g Float?
+  carbPer100g    Float?
+  fatPer100g     Float?
+  sourceApi      String?
+  sourceRef      String?
+  createdAt      DateTime @default(now())
+  mealItems      MealItem[]
+  @@index([normalizedKey])
+  @@map("food_items")
+}
+
+model UserCustomFood {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  kcalPer100g    Float?
+  proteinPer100g Float?
+  carbPer100g    Float?
+  fatPer100g     Float?
+  createdAt      DateTime @default(now())
+  mealItems      MealItem[]
+  @@unique([userId, name])
+  @@map("user_custom_foods")
+}
+
+model MealItem {
+  id                    String          @id @default(uuid())
+  entryId               String
+  entry                 Entry           @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  foodItemId            String?
+  foodItem              FoodItem?       @relation(fields: [foodItemId], references: [id])
+  customFoodId          String?
+  customFood            UserCustomFood? @relation(fields: [customFoodId], references: [id])
+  verbatimName          String
+  normalizedEnglishName String?
+  quantity              Float?
+  fractionValue         Float?
+  unit                  String?
+  grams                 Float?
+  kcal                  Float?
+  proteinG              Float?
+  carbG                 Float?
+  fatG                  Float?
+  confidenceScore       Float
+  lookupNeeded          Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  @@index([entryId])
+  @@map("meal_items")
+}
+
+// ---------- WORKOUT ----------
+model WorkoutSession {
+  id           String     @id @default(uuid())
+  entryId      String     @unique
+  entry        Entry      @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  durationMin  Int?
+  postWeightKg Float?
+  notes        String?
+  setGroups    SetGroup[]
+  @@map("workout_sessions")
+}
+
+model SetGroup {
+  id              String           @id @default(uuid())
+  sessionId       String
+  session         WorkoutSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId      String?
+  exercise        ExerciseCatalog? @relation(fields: [exerciseId], references: [id])
+  verbatimName    String
+  kind            SetGroupKind     @default(straight)
+  orderIndex      Int
+  restAfterSec    Int?
+  confidenceScore Float
+  sets            Set[]
+  @@index([sessionId, orderIndex])
+  @@map("set_groups")
+}
+
+model Set {
+  id              String   @id @default(uuid())
+  setGroupId      String
+  setGroup        SetGroup @relation(fields: [setGroupId], references: [id], onDelete: Cascade)
+  orderIndex      Int
+  load            Float?
+  unit            LoadUnit @default(kg)
+  reps            Int?
+  isTwins         Boolean  @default(false)
+  tempo           String?
+  restAfterSec    Int?
+  rir             Int?
+  isUncounted     Boolean  @default(false)
+  isBodyweight    Boolean  @default(false)
+  notes           String?
+  confidenceScore Float
+  createdAt       DateTime @default(now())
+  @@index([setGroupId, orderIndex])
+  @@map("sets")
+}
+
+// ---------- EXERCISES ----------
+model ExerciseCatalog {
+  id            String              @id @default(uuid())
+  canonicalName String              @unique
+  primaryMuscle String?
+  equipment     String?
+  isBodyweight  Boolean             @default(false)
+  setGroups     SetGroup[]
+  aliases       UserExerciseAlias[]
+  @@map("exercise_catalog")
+}
+
+model UserExerciseAlias {
+  id         String          @id @default(uuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aliasText  String
+  exerciseId String
+  exercise   ExerciseCatalog @relation(fields: [exerciseId], references: [id])
+  createdAt  DateTime        @default(now())
+  @@unique([userId, aliasText])
+  @@index([userId])
+  @@map("user_exercise_aliases")
+}
+
+// ---------- METRICS (long format) ----------
+model Metric {
+  id         String      @id @default(uuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metricType MetricType
+  value      Float
+  unit       String?
+  measuredAt DateTime
+  source     InputSource @default(manual)
+  entryId    String?
+  createdAt  DateTime    @default(now())
+  @@index([userId, metricType, measuredAt])
+  @@map("metrics")
+}
+
+// ---------- READINESS ----------
+model ReadinessScore {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  forDate        DateTime @db.Date
+  score          Int
+  hrvComponent   Float?
+  rhrComponent   Float?
+  sleepComponent Float?
+  moodComponent  Float?
+  explanation    String?  @db.Text
+  computedAt     DateTime @default(now())
+  @@unique([userId, forDate])
+  @@map("readiness_scores")
+}
+
+// ---------- INSIGHTS ----------
+model Insight {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind          InsightKind
+  slug          String      @unique
+  title         String
+  body          String      @db.Text
+  audioUrl      String?
+  periodStart   DateTime?
+  periodEnd     DateTime?
+  isPublicShare Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  @@index([userId, createdAt])
+  @@map("insights")
+}
+
+// ---------- STREAK ----------
+model Streak {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentLength  Int       @default(0)
+  longestLength  Int       @default(0)
+  graceRemaining Int       @default(3)
+  graceResetAt   DateTime
+  lastLoggedDate DateTime? @db.Date
+  @@map("streaks")
+}
+
+// ---------- REVIEW QUEUE ----------
+model ReviewItem {
+  id            String       @id @default(uuid())
+  entryId       String
+  entry         Entry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  question      String
+  targetTable   String
+  targetId      String?
+  status        ReviewStatus @default(pending)
+  resolvedValue String?
+  createdAt     DateTime     @default(now())
+  @@index([entryId, status])
+  @@map("review_items")
+}
+
+// ---------- AUDIT ----------
+model AuditLog {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entryId     String?
+  entry       Entry?      @relation(fields: [entryId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  targetTable String
+  targetId    String?
+  beforeJson  Json?
+  afterJson   Json?
+  createdAt   DateTime    @default(now())
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}

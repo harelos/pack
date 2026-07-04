@@ -1,0 +1,15 @@
+# One-click deploy to Render (free). In Render: New -> Blueprint -> point at this repo.
+# It runs the Pack prototype server. Set ANTHROPIC_API_KEY in the dashboard (Environment).
+services:
+  - type: web
+    name: pack-app
+    runtime: node
+    rootDir: prototype
+    plan: free
+    buildCommand: ""
+    startCommand: node server.mjs
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PACK_PROTO_MODEL
+        value: claude-sonnet-5
