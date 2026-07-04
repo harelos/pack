@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 <title>Pack</title>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -51,7 +53,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 @media (max-width:460px){body{background:var(--paper)}.stage{display:none}.device{max-width:none;height:100vh;border-radius:0;box-shadow:none}}
 
 /* shared */
-.mark{width:34px;height:34px;border-radius:10px;background:var(--forest);display:flex;align-items:center;justify-content:center;flex:none}
+.mark{position:relative;width:34px;height:34px;border-radius:11px;background:linear-gradient(158deg,#38805f,#245539);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 5px rgba(35,31,26,.16)}
+.mark::after{content:"";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:13px;height:2.5px;border-radius:2px;background:var(--clay)}
+.mono{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1;color:#FBF7EF;transform:translateY(-2px);-webkit-font-smoothing:antialiased}
 .mark svg{width:18px;height:18px}
 .word{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
 .btn{border:0;border-radius:12px;background:var(--forest);color:#FBF7EF;font-size:15px;font-weight:600;height:52px;
@@ -336,8 +340,8 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 /* share card = status-worthy branded artifact (the growth loop's output) */
 .sharecard{border-radius:18px;padding:22px;background:var(--forest);color:#EAF1EB;position:relative;overflow:hidden;margin-bottom:8px;box-shadow:var(--sh)}
 .sc-top{display:flex;align-items:center;gap:9px;margin-bottom:20px}
-.sc-top .m{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center}
-.sc-top .m svg{width:14px;height:14px}
+.sc-top .m{width:24px;height:24px;border-radius:7px;background:linear-gradient(158deg,#38805f,#245539);display:flex;align-items:center;justify-content:center}
+.sc-top .m .mono{font-size:14px;transform:translateY(-1px)}
 .sc-top .w{font-size:13px;font-weight:700;color:#FBF7EF}
 .sc-big{font-family:var(--serif);font-size:30px;font-weight:500;letter-spacing:-.02em;line-height:1.1;color:#FBF7EF}
 .sc-sub{font-size:13px;color:#CFE0D3;margin-top:6px}
@@ -507,7 +511,7 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
   <!-- ============ ONBOARDING ============ -->
   <div id="onboarding">
     <div class="ob-top">
-      <div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2Z" stroke="#FBF7EF" stroke-width="1.7" stroke-linejoin="round"/><path d="M3 6.5 12 11l9-4.5M12 22V11" stroke="#FBF7EF" stroke-width="1.7" stroke-linejoin="round" opacity=".8"/></svg></div>
+      <div class="mark"><span class="mono">P</span></div>
       <div class="ob-prog"><i id="obBar"></i></div>
       <button class="ob-skip" id="obSkip">Skip</button>
     </div>
@@ -571,7 +575,7 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
   <div id="app">
     <header>
       <div class="brand">
-        <div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2Z" stroke="#FBF7EF" stroke-width="1.7" stroke-linejoin="round"/><path d="M3 6.5 12 11l9-4.5M12 22V11" stroke="#FBF7EF" stroke-width="1.7" stroke-linejoin="round" opacity=".8"/></svg></div>
+        <div class="mark"><span class="mono">P</span></div>
         <div class="word">Pack</div>
       </div>
       <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">…</span></div>
@@ -702,7 +706,7 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
     <h3>Share your day</h3>
     <p class="lead">This card becomes a page anyone can open. No account needed to view. Every share brings the next lifter to Pack.</p>
     <div class="sharecard" id="shareCard">
-      <div class="sc-top"><div class="m"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2Z" stroke="#FBF7EF" stroke-width="1.7" stroke-linejoin="round"/></svg></div><div class="w">Pack</div></div>
+      <div class="sc-top"><div class="m"><span class="mono">P</span></div><div class="w">Pack</div></div>
       <div class="sc-big" id="scBig">Full day logged in 12 seconds</div>
       <div class="sc-sub" id="scSub">Food and training, one message.</div>
       <div class="sc-stats" id="scStats"></div>

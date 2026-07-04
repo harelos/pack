@@ -170,11 +170,22 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
     return res.end(html);
   }
+  if (req.method === "GET" && req.url === "/icon.svg") {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38805f"/><stop offset="1" stop-color="#245539"/></linearGradient></defs>
+<rect width="64" height="64" rx="15" fill="url(#g)"/>
+<text x="32" y="43" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="600" fill="#FBF7EF">P</text>
+<rect x="24" y="48" width="16" height="4" rx="2" fill="#C4623C"/>
+</svg>`;
+    res.writeHead(200, { "content-type": "image/svg+xml", "cache-control": "no-cache" });
+    return res.end(svg);
+  }
   if (req.method === "GET" && req.url === "/manifest.webmanifest") {
     res.writeHead(200, { "content-type": "application/manifest+json" });
     return res.end(JSON.stringify({
       name: "Pack", short_name: "Pack", display: "standalone",
       background_color: "#F5F0E6", theme_color: "#2F6B4F", start_url: "/", scope: "/", orientation: "portrait",
+      icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }],
     }));
   }
   if (req.method === "GET" && req.url === "/sw.js") {
