@@ -403,6 +403,35 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .bld-foot .add .ic{width:16px;height:16px;stroke:var(--forest)}
 .bld-foot .save{flex:1;height:50px;border-radius:12px;background:var(--forest);border:0;color:#FBF7EF;font-weight:700;font-size:15px}
 .bld-foot .save:disabled{opacity:.45}
+/* ---- competition mode ---- */
+.bld-comp{display:flex;align-items:center;gap:12px;padding:11px 14px;margin:0 0 10px;background:var(--card);border-radius:12px;border:1px solid var(--line2)}
+.bld-comp .l{flex:1;min-width:0}
+.bld-comp .l .t{font-size:14px;color:var(--ink);font-weight:650;line-height:1.2}
+.bld-comp .l .h{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+.comp-switch{position:relative;width:44px;height:24px;background:#e5e0d5;border-radius:24px;cursor:pointer;transition:background .18s;flex-shrink:0;border:0;padding:0}
+.comp-switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .18s}
+.comp-switch.on{background:var(--clay)}
+.comp-switch.on::after{left:22px}
+.bld-names{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.bld-name-wrap{position:relative;display:flex;flex-direction:column}
+.bld-name-wrap .lbl{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px;padding-inline-start:2px}
+.bld-name-wrap input{padding:10px 12px;border:1px solid var(--line2);border-radius:10px;font-size:14px;background:var(--paper);font-family:inherit;color:var(--ink);width:100%;box-sizing:border-box}
+.bld-name-wrap.a input:focus{outline:0;border-color:var(--forest)}
+.bld-name-wrap.b input:focus{outline:0;border-color:var(--clay)}
+.comp-heads{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;padding:6px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.comp-heads .h-a{color:var(--forest);text-align:center}
+.comp-heads .h-b{color:var(--clay);text-align:center}
+.setrow-two{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;align-items:center;padding:4px 0}
+.setrow-two .si{font-size:12px;color:var(--muted);font-weight:600;width:44px}
+.setrow-two .col{display:grid;grid-template-columns:1fr 1fr;gap:5px;min-width:0}
+.setrow-two .col input{width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 6px;text-align:center;min-width:0;box-sizing:border-box}
+.setrow-two .col.a input:focus{outline:0;border-color:var(--forest)}
+.setrow-two .col.b input:focus{outline:0;border-color:var(--clay)}
+.block-summary.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.block-summary.two-col .side{padding:6px 0}
+.block-summary.two-col .side .sh{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.block-summary.two-col .side.a .sh{color:var(--forest)}
+.block-summary.two-col .side.b .sh{color:var(--clay)}
 .restbar{position:absolute;left:0;right:0;bottom:72px;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--paper);border-top:1px solid var(--line)}
 .restbar .rt{font-family:var(--serif);font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
 .restbar.active .rt{color:var(--clay)}
@@ -669,6 +698,17 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
       </div>
       <div class="bld-body">
         <input class="bld-name" id="bldName" placeholder="Session name (e.g. Push day)">
+        <div class="bld-comp">
+          <div class="l">
+            <div class="t">Competition mode</div>
+            <div class="h">Track sets side by side with a training partner</div>
+          </div>
+          <button class="comp-switch" id="bldCompSwitch" type="button" aria-label="Toggle competition mode"></button>
+        </div>
+        <div class="bld-names" id="bldNames" style="display:none">
+          <label class="bld-name-wrap a"><span class="lbl">You</span><input id="bldNameA" placeholder="Your name" value="You" maxlength="20"></label>
+          <label class="bld-name-wrap b"><span class="lbl">Partner</span><input id="bldNameB" placeholder="Partner name" value="Partner" maxlength="20"></label>
+        </div>
         <div id="bldBlocks"></div>
       </div>
       <div class="restbar" id="restBar">
@@ -1303,7 +1343,10 @@ $("#bldTimer").onclick=toggleTimer;
 $("#pickSearch").oninput=e=>renderPick(e.target.value);
 $("#picker").addEventListener("click",e=>{if(e.target.id==="picker")closePicker();});
 
-function openBuilder(prefill){bld={name:"",blocks:(Array.isArray(prefill)&&prefill.length)?prefill:[],startTs:0,dur:0,timerInt:null,pickTarget:"new"};$("#bldName").value="";$("#bldTime").textContent="00:00";setTimerBtn(false);renderBlocks();$("#builder").classList.add("show");stopRest();if(!bld.blocks.length)openPicker();}
+function openBuilder(prefill){bld={name:"",blocks:(Array.isArray(prefill)&&prefill.length)?prefill:[],startTs:0,dur:0,timerInt:null,pickTarget:"new",competition:false,nameA:"You",nameB:"Partner"};$("#bldName").value="";$("#bldTime").textContent="00:00";setTimerBtn(false);$("#bldCompSwitch").classList.remove("on");$("#bldNames").style.display="none";$("#bldNameA").value="You";$("#bldNameB").value="Partner";renderBlocks();$("#builder").classList.add("show");stopRest();if(!bld.blocks.length)openPicker();}
+$("#bldCompSwitch").onclick=()=>{bld.competition=!bld.competition;$("#bldCompSwitch").classList.toggle("on",bld.competition);$("#bldNames").style.display=bld.competition?"grid":"none";if(bld.competition){bld.blocks.forEach(b=>{if(!b.setsB)b.setsB=b.sets.map(()=>({load:"",reps:""}));});}renderBlocks();};
+$("#bldNameA").oninput=e=>{bld.nameA=e.target.value.trim()||"You";renderBlocks();};
+$("#bldNameB").oninput=e=>{bld.nameB=e.target.value.trim()||"Partner";renderBlocks();};
 function closeBuilder(){if(bld.blocks.length&&!confirm("Discard this session?"))return;stopTick();stopRestInt();$("#builder").classList.remove("show");}
 
 /* rest timer between sets */
@@ -1320,10 +1363,29 @@ $$("#restTargets button").forEach(b=>b.onclick=()=>{$$("#restTargets button").fo
 
 function renderBlocks(){
   const c=$("#bldBlocks");
+  const isComp=bld.competition;
+  const chipsFor=arr=>arr.filter(s=>s.load||s.reps).map(s=>`<span class="chip">${s.load?esc(s.load)+"kg":"BW"}${s.reps?" × "+esc(s.reps):""}</span>`).join("")||'<span class="chip">no sets</span>';
   c.innerHTML=bld.blocks.map((b,bi)=>{
     if(b.done){
-      const chips=b.sets.filter(s=>s.load||s.reps).map(s=>`<span class="chip">${s.load?esc(s.load)+"kg":"BW"}${s.reps?" × "+esc(s.reps):""}</span>`).join("")||'<span class="chip">no sets</span>';
-      return `<div class="block"><div class="block-head"><div class="block-ex" data-name="${bi}">${esc(b.name)}</div><button class="block-rm" data-rm="${bi}">✕</button></div><div class="block-summary">${chips}</div><button class="block-done" data-edit="${bi}">Edit</button></div>`;
+      if(isComp&&b.setsB){
+        return `<div class="block"><div class="block-head"><div class="block-ex" data-name="${bi}">${esc(b.name)}</div><button class="block-rm" data-rm="${bi}">✕</button></div>
+          <div class="block-summary two-col"><div class="side a"><div class="sh">${esc(bld.nameA)}</div>${chipsFor(b.sets)}</div><div class="side b"><div class="sh">${esc(bld.nameB)}</div>${chipsFor(b.setsB)}</div></div>
+          <button class="block-done" data-edit="${bi}">Edit</button></div>`;
+      }
+      return `<div class="block"><div class="block-head"><div class="block-ex" data-name="${bi}">${esc(b.name)}</div><button class="block-rm" data-rm="${bi}">✕</button></div><div class="block-summary">${chipsFor(b.sets)}</div><button class="block-done" data-edit="${bi}">Edit</button></div>`;
+    }
+    if(isComp&&b.setsB){
+      const n=Math.max(b.sets.length,b.setsB.length);
+      let rows="";
+      for(let si=0;si<n;si++){
+        const sA=b.sets[si]||{load:"",reps:""};
+        const sB=b.setsB[si]||{load:"",reps:""};
+        rows+=`<div class="setrow-two"><span class="si">Set ${si+1}</span><div class="col a"><input inputmode="decimal" placeholder="kg" data-b="${bi}" data-s="${si}" data-side="A" data-f="load" value="${esc(sA.load)}"><input inputmode="numeric" placeholder="reps" data-b="${bi}" data-s="${si}" data-side="A" data-f="reps" value="${esc(sA.reps)}"></div><div class="col b"><input inputmode="decimal" placeholder="kg" data-b="${bi}" data-s="${si}" data-side="B" data-f="load" value="${esc(sB.load)}"><input inputmode="numeric" placeholder="reps" data-b="${bi}" data-s="${si}" data-side="B" data-f="reps" value="${esc(sB.reps)}"></div></div>`;
+      }
+      return `<div class="block"><div class="block-head"><div class="block-ex" data-name="${bi}">${esc(b.name)}</div><button class="block-rm" data-rm="${bi}">✕</button></div>
+        <div class="setcount">Sets <div class="stepper"><button data-dec="${bi}">−</button><span class="n">${n}</span><button data-inc="${bi}">+</button></div></div>
+        <div class="comp-heads"><span></span><span class="h-a">${esc(bld.nameA)}</span><span class="h-b">${esc(bld.nameB)}</span></div>
+        ${rows}<button class="block-done" data-done="${bi}">Mark done</button></div>`;
     }
     const rows=b.sets.map((s,si)=>`<div class="setrow"><span class="si">Set ${si+1}</span><input inputmode="decimal" placeholder="kg" data-b="${bi}" data-s="${si}" data-f="load" value="${esc(s.load)}"><span class="u">kg</span><input inputmode="numeric" placeholder="reps" data-b="${bi}" data-s="${si}" data-f="reps" value="${esc(s.reps)}"><span class="u">rep</span></div>`).join("");
     return `<div class="block"><div class="block-head"><div class="block-ex" data-name="${bi}">${esc(b.name)}</div><button class="block-rm" data-rm="${bi}">✕</button></div>
@@ -1331,12 +1393,12 @@ function renderBlocks(){
       ${rows}<button class="block-done" data-done="${bi}">Mark done</button></div>`;
   }).join("");
   $$("#bldBlocks [data-rm]").forEach(x=>x.onclick=()=>{bld.blocks.splice(+x.dataset.rm,1);renderBlocks();});
-  $$("#bldBlocks [data-inc]").forEach(x=>x.onclick=()=>{const b=bld.blocks[+x.dataset.inc];const last=b.sets[b.sets.length-1];b.sets.push({load:last?last.load:"",reps:""});renderBlocks();});
-  $$("#bldBlocks [data-dec]").forEach(x=>x.onclick=()=>{const b=bld.blocks[+x.dataset.dec];if(b.sets.length>1)b.sets.pop();renderBlocks();});
+  $$("#bldBlocks [data-inc]").forEach(x=>x.onclick=()=>{const b=bld.blocks[+x.dataset.inc];const last=b.sets[b.sets.length-1];b.sets.push({load:last?last.load:"",reps:""});if(isComp&&b.setsB){const lb=b.setsB[b.setsB.length-1];b.setsB.push({load:lb?lb.load:"",reps:""});}renderBlocks();});
+  $$("#bldBlocks [data-dec]").forEach(x=>x.onclick=()=>{const b=bld.blocks[+x.dataset.dec];if(b.sets.length>1)b.sets.pop();if(isComp&&b.setsB&&b.setsB.length>1)b.setsB.pop();renderBlocks();});
   $$("#bldBlocks [data-done]").forEach(x=>x.onclick=()=>{bld.blocks[+x.dataset.done].done=true;renderBlocks();});
   $$("#bldBlocks [data-edit]").forEach(x=>x.onclick=()=>{bld.blocks[+x.dataset.edit].done=false;renderBlocks();});
   $$("#bldBlocks [data-name]").forEach(x=>x.onclick=()=>openPicker(+x.dataset.name));
-  $$("#bldBlocks input[data-f]").forEach(inp=>{inp.oninput=()=>{bld.blocks[+inp.dataset.b].sets[+inp.dataset.s][inp.dataset.f]=inp.value;};if(inp.dataset.f==="reps")inp.onchange=()=>{if(parseInt(inp.value)>0)startRest();};});
+  $$("#bldBlocks input[data-f]").forEach(inp=>{inp.oninput=()=>{const side=inp.dataset.side;const arr=(side==="B")?bld.blocks[+inp.dataset.b].setsB:bld.blocks[+inp.dataset.b].sets;arr[+inp.dataset.s][inp.dataset.f]=inp.value;};if(inp.dataset.f==="reps")inp.onchange=()=>{if(parseInt(inp.value)>0)startRest();};});
   $("#bldSave").disabled=!bld.blocks.length;
 }
 
@@ -1351,7 +1413,7 @@ function renderPick(q){
   $$("#pickList [data-ex]").forEach(b=>b.onclick=()=>pick(b.dataset.ex));
   $$("#pickList [data-free]").forEach(b=>b.onclick=()=>pick($("#pickSearch").value.trim()));
 }
-function pick(name){if(!name)return;if(bld.pickTarget==="new"){bld.blocks.push({name,sets:[{load:"",reps:""},{load:"",reps:""},{load:"",reps:""}],done:false});}else{bld.blocks[bld.pickTarget].name=name;}closePicker();renderBlocks();}
+function pick(name){if(!name)return;if(bld.pickTarget==="new"){const nb={name,sets:[{load:"",reps:""},{load:"",reps:""},{load:"",reps:""}],done:false};if(bld.competition)nb.setsB=[{load:"",reps:""},{load:"",reps:""},{load:"",reps:""}];bld.blocks.push(nb);}else{bld.blocks[bld.pickTarget].name=name;}closePicker();renderBlocks();}
 
 function fmtDur(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0");}
 function tick(){$("#bldTime").textContent=fmtDur(bld.dur*60+(bld.startTs?(Date.now()-bld.startTs)/1000:0));}
@@ -1363,18 +1425,32 @@ function toggleTimer(){
 }
 function saveSession(){
   if(bld.startTs){bld.dur+=(Date.now()-bld.startTs)/60000;bld.startTs=0;stopTick();}
-  const groups=bld.blocks.filter(b=>b.name).map((b,i)=>({
+  const isComp=bld.competition;
+  const mkGroups=pickSets=>bld.blocks.filter(b=>b.name).map((b,i)=>({
     verbatim_name:b.name,kind:"straight",order_index:i+1,confidence_score:1,
-    sets:b.sets.map((s,si)=>{const load=parseFloat(s.load),reps=parseInt(s.reps),bw=!(load>0);
+    sets:(pickSets(b)||[]).map((s,si)=>{const load=parseFloat(s.load),reps=parseInt(s.reps),bw=!(load>0);
       return {order_index:si+1,load:bw?null:load,unit:bw?"bw":"kg",reps:isNaN(reps)?null:reps,is_bodyweight:bw,is_twins:false,is_uncounted:false,confidence_score:1};})
   }));
-  if(!groups.length)return showToast("Nothing to save","Add at least one exercise.");
-  const ws={set_groups:groups};
-  if(bld.dur>=0.5)ws.duration_min=Math.round(bld.dur);
-  if(bld.name.trim())ws.session_name=bld.name.trim();
-  addLog({entries:[{kind:"workout",workout_session:ws}],needs_review:[]});
+  const groupsA=mkGroups(b=>b.sets);
+  if(!groupsA.length)return showToast("Nothing to save","Add at least one exercise.");
+  const sessionBase=bld.name.trim()||"Training";
+  const wsA={set_groups:groupsA};
+  if(bld.dur>=0.5)wsA.duration_min=Math.round(bld.dur);
+  wsA.session_name=isComp?(sessionBase+" · "+bld.nameA):sessionBase;
+  if(isComp){wsA.competition=true;wsA.competition_partner=bld.nameB;}
+  addLog({entries:[{kind:"workout",workout_session:wsA}],needs_review:[]});
+  if(isComp){
+    const groupsB=mkGroups(b=>b.setsB);
+    if(groupsB.length){
+      const wsB={set_groups:groupsB};
+      if(bld.dur>=0.5)wsB.duration_min=Math.round(bld.dur);
+      wsB.session_name=sessionBase+" · "+bld.nameB;
+      wsB.competition=true;wsB.competition_partner=bld.nameA;
+      setTimeout(()=>addLog({entries:[{kind:"workout",workout_session:wsB}],needs_review:[]}),8);
+    }
+  }
   stopTick();stopRestInt();$("#builder").classList.remove("show");
-  showToast("Session saved",groups.length+" exercises"+(ws.duration_min?" · "+ws.duration_min+" min":""));
+  showToast("Session saved",isComp?("2 sessions logged · "+bld.nameA+" & "+bld.nameB):(groupsA.length+" exercises"+(wsA.duration_min?" · "+wsA.duration_min+" min":"")));
 }
 
 /* PWA: install + auto-update on new version */
