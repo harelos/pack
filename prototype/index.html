@@ -454,6 +454,18 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .quest.done .qf{background:var(--forest)}
 .quest .qn{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .setbw{margin-top:6px;font-size:13px;color:var(--forest);background:0;border:0;text-decoration:underline;padding:0;font-family:inherit}
+.sharecard{margin-top:14px;width:100%;font-size:13.5px;font-weight:650;color:var(--forest2);background:var(--forest-tint);border:1px solid var(--line);border-radius:12px;padding:11px;font-family:inherit;cursor:pointer}
+.sharecard:active{transform:scale(.99)}
+.prbadge{display:inline-block;margin-left:8px;font-size:10px;font-weight:800;letter-spacing:.06em;color:#fff;background:var(--clay);padding:2px 7px;border-radius:99px;vertical-align:middle}
+.levelup{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(35,31,26,.62);opacity:0;transition:opacity .3s;padding:24px}
+.levelup.on{opacity:1}
+.lu-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 60px rgba(35,31,26,.4);padding:38px 30px 26px;text-align:center;max-width:320px;width:100%;transform:translateY(14px) scale(.96);transition:transform .32s cubic-bezier(.2,.9,.3,1.2);overflow:hidden}
+.levelup.on .lu-card{transform:none}
+.lu-burst{position:absolute;top:-60px;left:50%;width:220px;height:220px;margin-left:-110px;border-radius:50%;background:radial-gradient(circle,var(--forest-tint),transparent 68%)}
+.lu-lv{position:relative;font-family:var(--serif);font-weight:700;font-size:52px;color:var(--forest);letter-spacing:.02em}
+.lu-rank{position:relative;font-family:var(--serif);font-size:23px;color:var(--clay2);margin-top:2px}
+.lu-sub{position:relative;font-size:13.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.lu-btn{position:relative;margin-top:20px;width:100%;font-family:inherit;font-weight:650;font-size:15px;color:#fff;background:var(--forest);border:0;border-radius:14px;padding:13px;cursor:pointer}
 .foodadd{display:flex;gap:8px;margin-bottom:12px}
 #foodInput{flex:1;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;min-width:0}
 #foodInput:focus{outline:0;border-color:var(--forest)}
@@ -855,7 +867,9 @@ const fmtTime=ts=>new Date(ts).toLocaleTimeString([],{hour:"numeric",minute:"2-d
 function logTitle(d){if(d.entries.some(e=>e.workout_session))return "Training";if(d.entries.some(e=>(e.meal_items||[]).length))return "Meal";return "Body check-in";}
 function catTag(d){const t=logTitle(d),m={Training:["Training","var(--forest-tint)","var(--forest2)"],Meal:["Food","var(--clay-tint)","var(--clay2)"],"Body check-in":["Body","var(--teal-tint)","var(--teal)"]}[t];return '<span class="tagd" style="background:'+m[1]+';color:'+m[2]+'">'+m[0]+'</span>';}
 function logSummary(d){const f=d.entries.flatMap(e=>e.meal_items||[]).length,x=d.entries.flatMap(e=>e.workout_session?.set_groups||[]).length,b=d.entries.flatMap(e=>e.body_metrics||[]).length,p=[];if(f)p.push(f+(f===1?" food":" foods"));if(x)p.push(x+(x===1?" exercise":" exercises"));if(b)p.push(b+" body "+(b===1?"metric":"metrics"));return p.join(" · ")||"entry";}
-function logItemHtml(l){return '<div class="logitem" data-ts="'+l.ts+'"><div class="lt">'+fmtTime(l.ts)+'</div><div class="lc"><div>'+catTag(l.data)+'<span class="ltitle">'+logTitle(l.data)+'</span></div><div class="lmeta">'+logSummary(l.data)+'</div></div><span class="chev">›</span></div>';}
+function prLogMap(){const best={},at={};loadLogs().slice().sort((a,b)=>a.ts-b.ts).forEach(l=>l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>{const k=(g.verbatim_name||"").trim().toLowerCase();if(!k)return;let top=0;g.sets.forEach(s=>{if(s.load>0&&s.reps>0)top=Math.max(top,estimate1RM(s.load,s.reps));});if(top>0&&top>(best[k]||0)){best[k]=top;at[k]=l.ts;}})));const byTs={};for(const k in at)byTs[at[k]]=(byTs[at[k]]||0)+1;return byTs;}
+let _prByTs={};
+function logItemHtml(l){const pr=_prByTs[l.ts],prb=pr?'<span class="prbadge">'+(pr>1?pr+' PRs':'PR')+'</span>':'';return '<div class="logitem" data-ts="'+l.ts+'"><div class="lt">'+fmtTime(l.ts)+'</div><div class="lc"><div>'+catTag(l.data)+'<span class="ltitle">'+logTitle(l.data)+'</span>'+prb+'</div><div class="lmeta">'+logSummary(l.data)+'</div></div><span class="chev">›</span></div>';}
 function deleteLog(ts){saveLogs(loadLogs().filter(l=>l.ts!==ts));refreshState();showToast("Log deleted","It is gone from your journal.");}
 let openDetail=null,openTs=null;
 function renderDetail(det,log){currentLogTs=log.ts;lastParse=log.data;openDetail=det;openTs=log.ts;
@@ -898,7 +912,7 @@ function renderToday(){
       bars='<div style="padding:2px 2px 10px;border-bottom:1px solid var(--line);margin-bottom:10px">'+(t.protein?bar("Protein (g)",t.protein,tgt.protein,"var(--forest)"):"")+(t.kcal?bar("Calories",t.kcal,tgt.kcal,"var(--clay)"):"")+'</div>';}
     fc.innerHTML=strip+bars+(foods.length?'<div class="card" style="padding:2px 16px">'+foods.map(logItemHtml).join("")+'</div>':'<div class="food-empty">No food logged yet.<br>Add what you ate above.</div>');
     bindLogItems(fc);}}
-function renderJournal(){const c=$("#journalList");if(!c)return;const logs=loadLogs().slice().reverse();if(!logs.length){c.innerHTML='<div class="empty">Your journal is empty.<br>Every day you log will appear here.</div>';return;}const byDay={};logs.forEach(l=>{const k=dayKey(l.ts);(byDay[k]=byDay[k]||[]).push(l);});c.innerHTML=Object.keys(byDay).map(day=>'<div class="journal-day"><div class="dh">'+day+'</div><div class="card" style="padding:2px 16px">'+byDay[day].map(logItemHtml).join("")+'</div></div>').join("");bindLogItems(c);}
+function renderJournal(){const c=$("#journalList");if(!c)return;_prByTs=prLogMap();const logs=loadLogs().slice().reverse();if(!logs.length){c.innerHTML='<div class="empty">Your journal is empty.<br>Every day you log will appear here.</div>';return;}const byDay={};logs.forEach(l=>{const k=dayKey(l.ts);(byDay[k]=byDay[k]||[]).push(l);});c.innerHTML=Object.keys(byDay).map(day=>'<div class="journal-day"><div class="dh">'+day+'</div><div class="card" style="padding:2px 16px">'+byDay[day].map(logItemHtml).join("")+'</div></div>').join("");bindLogItems(c);}
 function computeStreak(){const set=new Set(loadLogs().map(l=>dayKey(l.ts)));let n=0,d=new Date();while(set.has(d.toDateString())){n++;d.setDate(d.getDate()-1);}return n;}
 function updateStats(){const s=computeStreak(),sn=$("#streakN");if(sn)sn.textContent=s;const sh=$("#streakHint");if(sh)sh.textContent=s?"Keep it going. Do not break the chain.":"Log today to start your streak.";const wn=$("#weekN");if(wn)wn.textContent=loadLogs().filter(l=>l.ts>=Date.now()-6*864e5).length;}
 function refreshState(){renderToday();renderJournal();updateStats();renderCoach();}
@@ -1012,8 +1026,11 @@ function strengthDest(){const bw=bodyweight();if(!bw)return{noBw:true};const bes
 function weekSessions(){const a=weekStartTs();return loadLogs().filter(l=>l.ts>=a&&l.data.entries.some(e=>e.workout_session)).length;}
 function weekFoods(){const a=weekStartTs();let n=0;loadLogs().forEach(l=>{if(l.ts<a)return;l.data.entries.forEach(e=>n+=(e.meal_items||[]).length);});return n;}
 function weekPRs(){const a=weekStartTs();const sessions=loadLogs().filter(l=>l.data.entries.some(e=>e.workout_session)).sort((x,y)=>x.ts-y.ts);const best={};let n=0;sessions.forEach(l=>l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>{const k=(g.verbatim_name||"").trim().toLowerCase();let top=0;g.sets.forEach(s=>{if(s.load>0&&s.reps>0)top=Math.max(top,estimate1RM(s.load,s.reps));});if(top>0){if(top>(best[k]||0)){if(best[k]&&l.ts>=a)n++;best[k]=top;}}})));return n;}
+let _seenLevel=null;
 function renderGoals(){
   const li=levelInfo(computeXP()),ls=$("#levelStrip");
+  if(_seenLevel!==null&&li.lvl>_seenLevel)celebrateLevel(li.lvl);
+  _seenLevel=li.lvl;
   if(ls)ls.innerHTML='<span class="lv">Lv '+li.lvl+' · '+rankTitle(li.lvl)+'</span><div class="xpbar"><div class="xpfill" style="width:'+Math.max(4,li.pct)+'%"></div></div><span class="xn">'+li.into+'/'+li.need+' XP</span>';
   const gc=$("#goalCard");if(!gc)return;
   const d=strengthDest();let dest;
@@ -1025,8 +1042,53 @@ function renderGoals(){
   let vs="";if(tw||lw){const up=tw>=lw,pd=lw?Math.round((tw-lw)/lw*100):(tw?100:0);vs='<div class="vslast"><span class="'+(up?"up":"dn")+'">'+(up?"▲":"▼")+'</span> <b>'+tw.toLocaleString()+' kg</b> this week vs '+lw.toLocaleString()+' last'+(lw?' ('+(pd>=0?"+":"")+pd+'%)':"")+'</div>';}
   const q=[["Train 3 times",weekSessions(),3],["Set a new PR",weekPRs(),1],["Log 5 foods",weekFoods(),5]];
   const quests='<div class="quests">'+q.map(x=>{const done=x[1]>=x[2],val=Math.min(x[1],x[2]);return '<div class="quest'+(done?" done":"")+'"><span class="qlabel">'+(done?"✓ ":"")+x[0]+'</span><div class="qbar"><div class="qf" style="width:'+Math.round(val/x[2]*100)+'%"></div></div><span class="qn">'+val+'/'+x[2]+'</span></div>';}).join("")+'</div>';
-  gc.innerHTML='<div class="lbl">Your goal</div>'+dest+vs+quests;
+  const canShare=!d.noBw&&(d.pick||d.done);
+  const share=canShare?'<button class="sharecard" id="shareCard">Share my card</button>':'';
+  gc.innerHTML='<div class="lbl">Your goal</div>'+dest+vs+quests+share;
   const sb=$("#setBw");if(sb)sb.onclick=()=>{const v=parseFloat(prompt("Your bodyweight in kg?"));if(v>0){const t=(loadTargets&&loadTargets())||{};t.bodyweight=v;saveTargets(t);refreshState();showToast("Saved","Strength rank unlocked.");}};
+  const sc=$("#shareCard");if(sc)sc.onclick=buildStrengthCard;
+}
+function celebrateLevel(lvl){
+  const o=el('<div class="levelup"><div class="lu-card"><div class="lu-burst"></div><div class="lu-lv">LEVEL '+lvl+'</div><div class="lu-rank">'+rankTitle(lvl)+'</div><div class="lu-sub">You leveled up. Keep the chain alive.</div><button class="lu-btn">Let\'s go</button></div></div>');
+  document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add("on"));
+  const close=()=>{o.classList.remove("on");setTimeout(()=>o.remove(),320);};
+  o.querySelector(".lu-btn").onclick=close;o.onclick=e=>{if(e.target===o)close();};
+  if(navigator.vibrate)try{navigator.vibrate([18,40,18]);}catch(e){}
+}
+function buildStrengthCard(){
+  const li=levelInfo(computeXP()),best=bestByCat(),bw=bodyweight();
+  const rows=[];for(const c in best){const e1=best[c].e1,std=STD[c];let ti=0;for(let i=0;i<std.length;i++)if(e1>=std[i]*bw)ti=i+1;rows.push({name:c,kg:Math.round(e1),tier:TIERS[Math.min(ti,4)]});}
+  rows.sort((a,b)=>b.kg-a.kg);
+  const tw=volumeBetween(weekStartTs(),Date.now()+1);
+  const W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  x.fillStyle="#231F1A";x.fillRect(0,0,W,H);
+  x.fillStyle="#2F6B4F";x.fillRect(0,0,W,14);
+  x.fillStyle="#C4623C";x.fillRect(0,H-14,W,14);
+  x.textAlign="left";
+  x.fillStyle="#F5F0E6";x.font="600 46px Georgia,serif";x.fillText("PACK",80,120);
+  x.fillStyle="#C9C0B0";x.font="400 30px Georgia,serif";x.textAlign="right";x.fillText("strength card",W-80,120);
+  x.textAlign="left";
+  x.fillStyle="#F5F0E6";x.font="700 150px Georgia,serif";x.fillText("Lv "+li.lvl,80,320);
+  x.fillStyle="#7FB89B";x.font="600 62px Georgia,serif";x.fillText(rankTitle(li.lvl),84,400);
+  let y=560;x.font="400 34px Georgia,serif";x.fillStyle="#9A9182";x.fillText("BEST LIFTS  (est. 1RM)",80,y);y+=30;
+  x.strokeStyle="#3A342D";x.lineWidth=2;
+  rows.slice(0,5).forEach(r=>{y+=88;x.beginPath();x.moveTo(80,y-58);x.lineTo(W-80,y-58);x.stroke();
+    x.fillStyle="#F5F0E6";x.font="600 52px Georgia,serif";x.textAlign="left";x.fillText(capw(r.name),80,y);
+    x.fillStyle="#E0D8C8";x.font="700 52px Georgia,serif";x.textAlign="right";x.fillText(r.kg+" kg",W-330,y);
+    x.fillStyle="#C4623C";x.font="600 34px Georgia,serif";x.fillText(r.tier,W-80,y);});
+  if(!rows.length){x.fillStyle="#9A9182";x.font="400 40px Georgia,serif";x.fillText("Log your main lifts to fill this card.",80,y+90);}
+  y=H-260;x.beginPath();x.moveTo(80,y);x.lineTo(W-80,y);x.stroke();
+  x.fillStyle="#9A9182";x.font="400 34px Georgia,serif";x.textAlign="left";x.fillText("THIS WEEK'S VOLUME",80,y+70);
+  x.fillStyle="#7FB89B";x.font="700 88px Georgia,serif";x.fillText(tw.toLocaleString()+" kg",80,y+165);
+  const url=cv.toDataURL("image/png");
+  cv.toBlob(async(blob)=>{
+    const file=blob&&window.File?new File([blob],"pack-strength-card.png",{type:"image/png"}):null;
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:"My Pack strength card"});return;}catch(e){}
+    }
+    const a=document.createElement("a");a.href=url;a.download="pack-strength-card.png";a.click();
+    showToast("Card saved","Your strength card downloaded.");
+  },"image/png");
 }
 
 $("#startTraining").onclick=()=>{if(heroPlan&&heroPlan.length)startFromPlan(heroPlan);else openBuilder();};
