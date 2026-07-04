@@ -430,6 +430,30 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .hero-stat .hn{font-family:var(--serif);font-size:40px;font-weight:500;letter-spacing:-.03em;color:var(--forest);line-height:1;font-variant-numeric:tabular-nums}
 .hero-stat .hl{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 #s-today .greet h2{font-size:27px;line-height:1.14;letter-spacing:-.02em}
+/* gamification: level strip + goal card */
+.levelstrip{display:flex;align-items:center;gap:10px;margin:12px 2px 2px}
+.levelstrip .lv{font-family:var(--serif);font-size:15px;color:var(--forest);font-weight:600;white-space:nowrap}
+.levelstrip .xpbar{flex:1;height:8px;border-radius:99px;background:var(--card2);overflow:hidden}
+.levelstrip .xpfill{height:100%;background:linear-gradient(90deg,var(--forest),#4e9b7f);border-radius:99px;transition:width .6s var(--ease)}
+.levelstrip .xn{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.goal-dest{display:flex;align-items:center;gap:12px}
+.goal-dest .gd-l{flex:1;min-width:0}
+.gd-tier{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--clay)}
+.gd-line{font-size:15px;font-weight:650;color:var(--ink);margin:4px 0 8px}
+.gd-bar{height:9px;border-radius:99px;background:var(--card2);overflow:hidden}
+.gd-fill{height:100%;background:var(--forest);border-radius:99px;transition:width .7s var(--ease)}
+.gd-badge{flex:none;width:52px;height:52px;border-radius:14px;background:var(--forest-tint);border:1px solid #C6DDCC;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:23px;color:var(--forest2)}
+.vslast{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.vslast b{color:var(--ink)}.vslast .up{color:var(--forest)}.vslast .dn{color:var(--clay2)}
+.quests{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.quest{display:flex;align-items:center;gap:10px;font-size:13px}
+.quest .qlabel{color:var(--ink2);white-space:nowrap}
+.quest.done .qlabel{color:var(--forest2);font-weight:650}
+.quest .qbar{flex:1;height:6px;border-radius:99px;background:var(--card2);overflow:hidden}
+.quest .qf{height:100%;background:var(--clay);border-radius:99px}
+.quest.done .qf{background:var(--forest)}
+.quest .qn{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.setbw{margin-top:6px;font-size:13px;color:var(--forest);background:0;border:0;text-decoration:underline;padding:0;font-family:inherit}
 .foodadd{display:flex;gap:8px;margin-bottom:12px}
 #foodInput{flex:1;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;min-width:0}
 #foodInput:focus{outline:0;border-color:var(--forest)}
@@ -546,8 +570,11 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
       <section class="screen active" id="s-today">
         <div class="greet"><div class="date" id="dateK">Today</div><h2 id="greetH">Good evening</h2></div>
         <div class="hero-stat" id="heroStat" style="display:none"><span class="hn" id="heroNum">0</span><span class="hl" id="heroLabel"></span></div>
+        <div id="levelStrip" class="levelstrip"></div>
 
         <button class="btn bigstart" id="startTraining"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M4 9l2-2M20 15l-2 2M7 4l3 3M17 20l-3-3M3.5 12.5l1-1M19.5 11.5l1 1"/></svg><span id="startLabel">Start training</span></button>
+
+        <div class="card rise" id="goalCard" style="margin-top:14px"></div>
 
         <div class="daytabs">
           <button class="daytab active" data-day="training">Training</button>
@@ -855,7 +882,7 @@ function openLog(ts){const card=$('#todayTraining .sesscard[data-ts="'+ts+'"]');
   const log=loadLogs().find(l=>l.ts===ts);if(!log)return;
   const det=el('<div class="logdetail"></div>');det.onclick=e=>e.stopPropagation();card.after(det);renderDetail(det,log);}
 function renderToday(){
-  renderHero();
+  renderHero();renderGoals();
   const today=dayKey(Date.now()),logs=loadLogs().filter(l=>dayKey(l.ts)===today).reverse();
   const tc=$("#todayTraining");
   if(tc){const sess=logs.filter(l=>l.data.entries.some(e=>e.workout_session));
@@ -961,6 +988,45 @@ function renderHero(){
     else{const n=loadLogs().length;if(n>0){hs.style.display="";$("#heroLabel").textContent=n===1?"log so far":"logs so far";animOrSet($("#heroNum"),n);}else hs.style.display="none";}}
   heroPlan=h.cta;const sl=$("#startLabel");if(sl)sl.textContent=h.cta?"Start today's plan":"Start training";
   _heroAnimDone=true;
+}
+
+/* ================= GAMIFICATION: level, strength rank, quests ================= */
+const STD={bench:[.75,1,1.5,2],squat:[1,1.5,2,2.5],deadlift:[1.25,1.75,2.25,3],press:[.5,.75,1,1.4],row:[.75,1,1.4,1.8]};
+const TIERS=["Beginner","Novice","Intermediate","Advanced","Elite"];
+function liftCat(n){n=(n||"").toLowerCase();if(/deadlift/.test(n))return"deadlift";if(/squat/.test(n))return"squat";if(/bench/.test(n))return"bench";if(/overhead|ohp|shoulder press|military/.test(n))return"press";if(/row/.test(n))return"row";return null;}
+function weekStartTs(){const d=new Date();const day=(d.getDay()+6)%7;d.setHours(0,0,0,0);d.setDate(d.getDate()-day);return d.getTime();}
+function volumeBetween(a,b){let v=0;loadLogs().forEach(l=>{if(l.ts<a||l.ts>=b)return;l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>g.sets.forEach(s=>{if(s.load>0&&s.reps>0)v+=s.load*s.reps;})));});return Math.round(v);}
+function computeXP(){const logs=loadLogs();let xp=0;const sessions=logs.filter(l=>l.data.entries.some(e=>e.workout_session)).sort((a,b)=>a.ts-b.ts);
+  xp+=sessions.length*40;
+  sessions.forEach(l=>l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>g.sets.forEach(s=>{if(s.reps>0)xp+=6;}))));
+  const best={};sessions.forEach(l=>l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>{const k=(g.verbatim_name||"").trim().toLowerCase();let top=0;g.sets.forEach(s=>{if(s.load>0&&s.reps>0)top=Math.max(top,estimate1RM(s.load,s.reps));});if(top>0){if(top>(best[k]||0)){if(best[k])xp+=120;best[k]=top;}}})));
+  xp+=computeStreak()*8;
+  xp+=logs.filter(l=>l.data.entries.some(e=>(e.meal_items||[]).length)).length*4;
+  return Math.round(xp);}
+function levelInfo(xp){let lvl=1,need=100,acc=0;while(xp>=acc+need){acc+=need;lvl++;need=Math.round(need*1.35);}return{lvl,into:xp-acc,need,pct:Math.round((xp-acc)/need*100)};}
+function rankTitle(l){return l>=30?"Legend":l>=22?"Elite":l>=15?"Beast":l>=10?"Strong":l>=6?"Grinder":l>=3?"Rookie":"Newcomer";}
+function bodyweight(){let w=0,ts=-1;loadLogs().forEach(l=>l.data.entries.forEach(e=>(e.body_metrics||[]).forEach(m=>{if(m.metric_type==="weight"&&l.ts>=ts){ts=l.ts;w=m.value;}})));if(w)return w;const t=loadTargets&&loadTargets();return(t&&t.bodyweight)||0;}
+function bestByCat(){const m={};loadLogs().forEach(l=>l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>{const c=liftCat(g.verbatim_name);if(!c)return;g.sets.forEach(s=>{if(s.load>0&&s.reps>0){const e1=estimate1RM(s.load,s.reps);if(e1>(m[c]?m[c].e1:0))m[c]={e1,name:g.verbatim_name};}});})));return m;}
+function strengthDest(){const bw=bodyweight();if(!bw)return{noBw:true};const best=bestByCat();const picks=[];for(const c in best){const e1=best[c].e1,std=STD[c];let ti=0;for(let i=0;i<std.length;i++)if(e1>=std[i]*bw)ti=i+1;if(ti>=4)continue;const nextKg=Math.round(std[ti]*bw),prevKg=ti===0?0:Math.round(std[ti-1]*bw),gap=Math.max(0,nextKg-Math.round(e1)),pct=Math.max(3,Math.min(100,Math.round((e1-prevKg)/(nextKg-prevKg)*100)));picks.push({name:best[c].name,cur:TIERS[ti],next:TIERS[ti+1],gap,pct});}
+  if(!picks.length)return{done:Object.keys(best).length>0};picks.sort((a,b)=>a.gap-b.gap);return{pick:picks[0]};}
+function weekSessions(){const a=weekStartTs();return loadLogs().filter(l=>l.ts>=a&&l.data.entries.some(e=>e.workout_session)).length;}
+function weekFoods(){const a=weekStartTs();let n=0;loadLogs().forEach(l=>{if(l.ts<a)return;l.data.entries.forEach(e=>n+=(e.meal_items||[]).length);});return n;}
+function weekPRs(){const a=weekStartTs();const sessions=loadLogs().filter(l=>l.data.entries.some(e=>e.workout_session)).sort((x,y)=>x.ts-y.ts);const best={};let n=0;sessions.forEach(l=>l.data.entries.forEach(e=>(e.workout_session?.set_groups||[]).forEach(g=>{const k=(g.verbatim_name||"").trim().toLowerCase();let top=0;g.sets.forEach(s=>{if(s.load>0&&s.reps>0)top=Math.max(top,estimate1RM(s.load,s.reps));});if(top>0){if(top>(best[k]||0)){if(best[k]&&l.ts>=a)n++;best[k]=top;}}})));return n;}
+function renderGoals(){
+  const li=levelInfo(computeXP()),ls=$("#levelStrip");
+  if(ls)ls.innerHTML='<span class="lv">Lv '+li.lvl+' · '+rankTitle(li.lvl)+'</span><div class="xpbar"><div class="xpfill" style="width:'+Math.max(4,li.pct)+'%"></div></div><span class="xn">'+li.into+'/'+li.need+' XP</span>';
+  const gc=$("#goalCard");if(!gc)return;
+  const d=strengthDest();let dest;
+  if(d.noBw)dest='<div class="gd-tier">Me vs the standards</div><div class="gd-line">Unlock your strength rank</div><button class="setbw" id="setBw">Set your bodyweight</button>';
+  else if(d.pick){const p=d.pick;dest='<div class="goal-dest"><div class="gd-l"><div class="gd-tier">Next milestone</div><div class="gd-line">'+esc(capw(p.name))+': '+p.cur+', '+p.gap+'kg from '+p.next+'</div><div class="gd-bar"><div class="gd-fill" style="width:'+p.pct+'%"></div></div></div><div class="gd-badge">'+p.next[0]+'</div></div>';}
+  else if(d.done)dest='<div class="gd-tier">Maxed</div><div class="gd-line">Elite on every main lift. Now chase the numbers.</div>';
+  else dest='<div class="gd-tier">Me vs the standards</div><div class="gd-line">Log a squat, bench, deadlift, press or row and I\'ll rank you.</div>';
+  const tw=volumeBetween(weekStartTs(),Date.now()+1),lw=volumeBetween(weekStartTs()-6048e5,weekStartTs());
+  let vs="";if(tw||lw){const up=tw>=lw,pd=lw?Math.round((tw-lw)/lw*100):(tw?100:0);vs='<div class="vslast"><span class="'+(up?"up":"dn")+'">'+(up?"▲":"▼")+'</span> <b>'+tw.toLocaleString()+' kg</b> this week vs '+lw.toLocaleString()+' last'+(lw?' ('+(pd>=0?"+":"")+pd+'%)':"")+'</div>';}
+  const q=[["Train 3 times",weekSessions(),3],["Set a new PR",weekPRs(),1],["Log 5 foods",weekFoods(),5]];
+  const quests='<div class="quests">'+q.map(x=>{const done=x[1]>=x[2],val=Math.min(x[1],x[2]);return '<div class="quest'+(done?" done":"")+'"><span class="qlabel">'+(done?"✓ ":"")+x[0]+'</span><div class="qbar"><div class="qf" style="width:'+Math.round(val/x[2]*100)+'%"></div></div><span class="qn">'+val+'/'+x[2]+'</span></div>';}).join("")+'</div>';
+  gc.innerHTML='<div class="lbl">Your goal</div>'+dest+vs+quests;
+  const sb=$("#setBw");if(sb)sb.onclick=()=>{const v=parseFloat(prompt("Your bodyweight in kg?"));if(v>0){const t=(loadTargets&&loadTargets())||{};t.bodyweight=v;saveTargets(t);refreshState();showToast("Saved","Strength rank unlocked.");}};
 }
 
 $("#startTraining").onclick=()=>{if(heroPlan&&heroPlan.length)startFromPlan(heroPlan);else openBuilder();};
