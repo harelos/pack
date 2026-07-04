@@ -430,6 +430,25 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 .sesscard .snm{font-size:15px;font-weight:650;color:var(--ink)}
 .sesscard .smeta{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
 .sesscard .sex{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+/* ---- adaptive coach ---- */
+.coach-head{margin-bottom:14px}
+.coach-head .ch-t{font-family:var(--serif);font-size:20px;color:var(--ink)}
+.coach-head .ch-s{font-size:12.5px;color:var(--muted);margin-top:2px}
+.coach-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh);margin-bottom:12px}
+.cc-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cc-name{font-size:16px;font-weight:650;color:var(--ink)}
+.cc-trend{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+.cc-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.cc-metric{flex:none}
+.cc-n{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--ink);line-height:1}
+.cc-n small{font-size:13px;color:var(--muted)}
+.cc-l{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.cc-spark{flex:1;height:36px;min-width:0}
+.cc-next{display:flex;align-items:center;justify-content:space-between;background:var(--forest-tint);border:1px solid #C6DDCC;border-radius:12px;padding:11px 14px}
+.cc-nl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--forest2)}
+.cc-nv{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--forest2)}
+.cc-reason{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -548,31 +567,8 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
 
       <!-- INSIGHTS -->
       <section class="screen" id="s-insights">
-        <div class="greet"><div class="date">Coach</div><h2>Insights</h2></div>
-        <div class="demo-note" style="margin-bottom:2px">Preview of what Pack writes for you. Your real coach letter and correlations build from your own logs over the first weeks.</div>
-        <div class="letter">
-          <div class="lh"><span class="eyebrow">Sunday coach letter</span></div>
-          <p>Strong week, Dani. Training volume climbed 12 percent and you hit protein 6 of 7 days. The miss was Wednesday again.</p>
-          <p>One thing to watch. Your bench 1RM projection slipped 4 percent while volume rose. That is classic under-recovery. Cut one accessory day this week and it should bounce back.</p>
-          <button class="play"><svg class="ic" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Listen · 1:12</button>
-        </div>
-        <div class="card">
-          <div class="lbl">Correlation</div>
-          <div class="insight-msg">Every time you sleep under 6 hours, you eat about 480 kcal more the next day. Roughly 14 lb a year if it holds.</div>
-          <svg class="spark-line" viewBox="0 0 300 50" preserveAspectRatio="none"><polyline points="0,38 50,36 100,40 150,20 200,24 250,10 300,14" fill="none" stroke="#2F6B4F" stroke-width="2.5"/></svg>
-        </div>
-        <div class="card locked">
-          <div class="blurwrap">
-            <div class="lbl">Correlation engine</div>
-            <div class="insight-msg">Your Wednesday skips follow Tuesday late meetings in 80 percent of weeks. Auto-shift Wednesday to Thursday?</div>
-          </div>
-          <div class="lockcta">
-            <svg class="ic li" viewBox="0 0 24 24" style="width:26px;height:26px"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-            <div class="lt">Unlock the correlation engine</div>
-            <div class="lp">Find the hidden patterns in your own data.</div>
-            <button data-pay="1">See Pack Pro</button>
-          </div>
-        </div>
+        <div class="greet"><div class="date">Adaptive</div><h2>Coach</h2></div>
+        <div id="coachBody"></div>
       </section>
 
       <!-- ME -->
@@ -634,7 +630,7 @@ nav{position:absolute;bottom:0;left:0;right:0;min-height:76px;padding:9px 24px c
     <nav>
       <button class="nav-btn active" data-tab="today"><svg class="ic" viewBox="0 0 24 24" style="stroke:currentColor"><path d="M5 4h11l3 3v13H5z"/><path d="M8 9h7M8 13h7M8 17h4"/></svg>Today</button>
       <button class="nav-btn" data-tab="journal"><svg class="ic" viewBox="0 0 24 24" style="stroke:currentColor"><path d="M6 3h11a1 1 0 0 1 1 1v17H8a2 2 0 0 1-2-2z"/><path d="M6 3v18M10 8h5M10 12h5"/></svg>Journal</button>
-      <button class="nav-btn" data-tab="insights"><svg class="ic" viewBox="0 0 24 24" style="stroke:currentColor"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg>Insights</button>
+      <button class="nav-btn" data-tab="insights"><svg class="ic" viewBox="0 0 24 24" style="stroke:currentColor"><path d="M12 3a5 5 0 0 0-5 5c0 1.6-.8 2.4-1.2 3.2A5 5 0 0 0 12 19a5 5 0 0 0 6.2-7.8C17.8 10.4 17 9.6 17 8a5 5 0 0 0-5-5z"/><path d="M9 21h6"/></svg>Coach</button>
       <button class="nav-btn" data-tab="me"><svg class="ic" viewBox="0 0 24 24" style="stroke:currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me</button>
     </nav>
 
@@ -857,9 +853,62 @@ function renderToday(){
 function renderJournal(){const c=$("#journalList");if(!c)return;const logs=loadLogs().slice().reverse();if(!logs.length){c.innerHTML='<div class="empty">Your journal is empty.<br>Every day you log will appear here.</div>';return;}const byDay={};logs.forEach(l=>{const k=dayKey(l.ts);(byDay[k]=byDay[k]||[]).push(l);});c.innerHTML=Object.keys(byDay).map(day=>'<div class="journal-day"><div class="dh">'+day+'</div><div class="card" style="padding:2px 16px">'+byDay[day].map(logItemHtml).join("")+'</div></div>').join("");bindLogItems(c);}
 function computeStreak(){const set=new Set(loadLogs().map(l=>dayKey(l.ts)));let n=0,d=new Date();while(set.has(d.toDateString())){n++;d.setDate(d.getDate()-1);}return n;}
 function updateStats(){const s=computeStreak(),sn=$("#streakN");if(sn)sn.textContent=s;const sh=$("#streakHint");if(sh)sh.textContent=s?"Keep it going. Do not break the chain.":"Log today to start your streak.";const wn=$("#weekN");if(wn)wn.textContent=loadLogs().filter(l=>l.ts>=Date.now()-6*864e5).length;}
-function refreshState(){renderToday();renderJournal();updateStats();}
+function refreshState(){renderToday();renderJournal();updateStats();renderCoach();}
 
-$("#startTraining").onclick=openBuilder;
+/* ================= ADAPTIVE COACH ================= */
+function estimate1RM(load,reps){return load>0&&reps>0?Math.round(load*(1+reps/30)):(load||0);}
+function coachData(){
+  const logs=loadLogs().filter(l=>l.data.entries.some(e=>e.workout_session)).sort((a,b)=>a.ts-b.ts);
+  const byEx={};
+  logs.forEach(l=>{const ws=(l.data.entries.find(e=>e.workout_session)||{}).workout_session||{};(ws.set_groups||[]).forEach(g=>{
+    const key=(g.verbatim_name||"").trim().toLowerCase();if(!key)return;
+    let top=null;(g.sets||[]).forEach(s=>{if(s.load>0&&s.reps>0){if(!top||s.load>top.load||(s.load===top.load&&s.reps>top.reps))top={load:s.load,reps:s.reps};}});
+    if(!byEx[key])byEx[key]={name:g.verbatim_name,points:[]};
+    if(top)byEx[key].points.push({ts:l.ts,load:top.load,reps:top.reps,e1rm:estimate1RM(top.load,top.reps)});
+  });});
+  return byEx;
+}
+function analyzeEx(ex){
+  const p=ex.points;if(p.length<2)return null;
+  const last=p[p.length-1],prevBest=Math.max(0,...p.slice(0,-1).map(x=>x.e1rm)),lastN=p.slice(-3).map(x=>x.e1rm);
+  const stalled=p.length>=3&&lastN[lastN.length-1]<=Math.max(lastN[0],lastN[1]);
+  const trend=last.e1rm>prevBest?"up":(stalled?"stall":"flat");
+  const step=last.load>=20?2.5:1;let rec,reason;
+  if(stalled){rec={load:Math.max(step,Math.round(last.load*0.9/step)*step),reps:last.reps};reason="Stalled 3 sessions. Deload about 10 percent, then build back with clean reps.";}
+  else if(last.reps>=8){rec={load:last.load+step,reps:5};reason="You cleared 8+ reps. Add "+step+"kg and reset to 5.";}
+  else{rec={load:last.load,reps:last.reps+1};reason="Same weight, add one rep (double progression).";}
+  return {name:ex.name,last,trend,rec,reason,points:p};
+}
+function sparkSvg(vals){if(vals.length<2)return '';const min=Math.min(...vals),max=Math.max(...vals),r=(max-min)||1,W=120,H=36;
+  const pts=vals.map((v,i)=>(i/(vals.length-1)*W).toFixed(1)+","+(H-((v-min)/r)*(H-6)-3).toFixed(1)).join(" ");
+  return '<svg class="cc-spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" stroke="var(--forest)" stroke-width="2"/></svg>';}
+function coachCard(e){
+  const tc={up:["Progressing","var(--forest-tint)","var(--forest2)"],stall:["Plateau","var(--clay-tint)","var(--clay2)"],flat:["Holding","var(--card2)","var(--muted)"]}[e.trend];
+  const next=e.rec.load>0?e.rec.load+"kg × "+e.rec.reps:"BW × "+e.rec.reps;
+  return '<div class="coach-card"><div class="cc-head"><span class="cc-name">'+esc(e.name)+'</span><span class="cc-trend" style="background:'+tc[1]+';color:'+tc[2]+'">'+tc[0]+'</span></div>'
+    +'<div class="cc-row"><div class="cc-metric"><div class="cc-n">'+e.last.e1rm+'<small>kg</small></div><div class="cc-l">est 1RM</div></div>'+sparkSvg(e.points.map(p=>p.e1rm))+'</div>'
+    +'<div class="cc-next"><div class="cc-nl">Next session</div><div class="cc-nv">'+next+'</div></div>'
+    +'<div class="cc-reason">'+esc(e.reason)+'</div></div>';
+}
+function renderCoach(){
+  const c=$("#coachBody");if(!c)return;
+  const exs=Object.values(coachData()).map(analyzeEx).filter(Boolean);
+  if(!exs.length){c.innerHTML='<div class="empty">Log the same exercise across 2+ sessions and your coach starts here.<br>It reads your real sets and prescribes next week\'s weights, and it deloads you when you stall.</div>';return;}
+  exs.sort((a,b)=>(b.trend==="stall")-(a.trend==="stall")||b.points.length-a.points.length);
+  const up=exs.filter(e=>e.trend==="up").length,stall=exs.filter(e=>e.trend==="stall").length;
+  c.innerHTML='<div class="coach-head"><div class="ch-t">This week\'s plan</div><div class="ch-s">'+up+' progressing · '+stall+' plateau · '+exs.length+' lifts tracked</div></div>'
+    +exs.map(coachCard).join("")
+    +'<button class="btn" id="startPlan" style="margin-top:6px">Start a session from this plan</button>';
+  $("#startPlan").onclick=()=>startFromPlan(exs);
+}
+function startFromPlan(exs){
+  const blocks=exs.slice(0,6).map(e=>({name:e.name,sets:[{load:String(e.rec.load||""),reps:String(e.rec.reps||"")},{load:String(e.rec.load||""),reps:""},{load:String(e.rec.load||""),reps:""}],done:false}));
+  $$(".nav-btn").forEach(x=>x.classList.remove("active"));const tb=$('.nav-btn[data-tab="today"]');if(tb)tb.classList.add("active");
+  $$(".screen").forEach(s=>s.classList.remove("active"));$("#s-today").classList.add("active");
+  openBuilder(blocks);
+}
+
+$("#startTraining").onclick=()=>openBuilder();
 $$(".daytab").forEach(t=>t.onclick=()=>{$$(".daytab").forEach(x=>x.classList.remove("active"));t.classList.add("active");const d=t.dataset.day;$("#dayTraining").style.display=d==="training"?"":"none";$("#dayFood").style.display=d==="food"?"":"none";});
 $("#foodAdd").onclick=()=>logFood($("#foodInput").value.trim());
 $("#foodInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();logFood($("#foodInput").value.trim());}});
@@ -1067,7 +1116,7 @@ $("#bldTimer").onclick=toggleTimer;
 $("#pickSearch").oninput=e=>renderPick(e.target.value);
 $("#picker").addEventListener("click",e=>{if(e.target.id==="picker")closePicker();});
 
-function openBuilder(){bld={name:"",blocks:[],startTs:0,dur:0,timerInt:null,pickTarget:"new"};$("#bldName").value="";$("#bldTime").textContent="00:00";setTimerBtn(false);renderBlocks();$("#builder").classList.add("show");openPicker();}
+function openBuilder(prefill){bld={name:"",blocks:(Array.isArray(prefill)&&prefill.length)?prefill:[],startTs:0,dur:0,timerInt:null,pickTarget:"new"};$("#bldName").value="";$("#bldTime").textContent="00:00";setTimerBtn(false);renderBlocks();$("#builder").classList.add("show");if(!bld.blocks.length)openPicker();}
 function closeBuilder(){if(bld.blocks.length&&!confirm("Discard this session?"))return;stopTick();$("#builder").classList.remove("show");}
 
 function renderBlocks(){
